@@ -10,27 +10,23 @@ public static class MeshCalculator
             .OrderBy(x => x.Area)
             .Select(x => x.face);
 
-    public static double SurfaceArea(this IEnumerable<IFace3D> mesh) => mesh.Sum(face => face.Area);
+    public static float SurfaceArea<T>(this IEnumerable<T> mesh)
+        where T : IFace3D
+        => mesh.Sum(face => face.Area);
+
     public static double Volume(this IEnumerable<Triangle3D> mesh) => mesh.Sum(SignedTetrahedronVolume).Abs();
 
-    public static Vertex3D Centroid(this IEnumerable<IFace3D> mesh)
+    public static Vertex3D Centroid<T>(this IEnumerable<T> mesh)
+        where T : IFace3D
     {
-        var meshCollection=mesh as ICollection<IFace3D>??mesh.ToList();
-        var count=meshCollection.Count;
-        var centroid = meshCollection.Coalesce((face, centroid) => face.Centroid + centroid, new Vertex3D());
-        return centroid/count;
+        var meshCollection = mesh as ICollection<T> ?? mesh.ToList();
+        var count = meshCollection.Count;
+        var centroid = meshCollection.Aggregate(new Vertex3D(), (centroid, face) => face.Centroid + centroid);
+        return centroid / count;
     }
 
     #region private helpers
 
-    private static TResult Coalesce<TIn,TResult>(this IEnumerable<TIn> me, Func<TIn, TResult, TResult> reducer, TResult start)
-    {
-        var result = start;
-        foreach (var item in me)
-            result=reducer(item,result);
-
-        return result;
-    }
 
     private static double SignedTetrahedronVolume(Triangle3D baseTriangle)
     {

@@ -1,9 +1,16 @@
 namespace Finnimon.Math;
 
-public interface I3D
+public interface I3D : IVertex
 {
-    double X { get; }
-    double Y { get; }
-    double Z { get; }
-    public Vertex3D AsVertex3D()=>new Vertex3D(X, Y, Z);
+    float X { get; }
+    float Y { get; }
+    float Z { get; }
+
+    public new float this[int index] => index switch
+    {
+        0 => X,
+        1 => Y,
+        2 => Z,
+        _ => throw new IndexOutOfRangeException()
+    };
 }
