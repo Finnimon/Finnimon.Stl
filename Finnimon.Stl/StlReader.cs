@@ -12,7 +12,7 @@ public static class StlReader
         var solid = new byte[5];
         var read = stream.Read(solid);
         stream.Seek(-read, SeekOrigin.Current);
-        return Encoding.ASCII.GetString(solid,0,5) switch
+        return Encoding.ASCII.GetString(solid,0,5).ToLower() switch
         {
             nameof(solid) => ReadAscii(stream, leaveOpen),
             _ => ReadBinary(stream, leaveOpen)
