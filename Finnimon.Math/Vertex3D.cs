@@ -68,7 +68,7 @@ public readonly record struct Vertex3D(
     {
         var xDiff = other.X - X;
         var yDiff = other.Y - Y;
-        var zDiff = other.Y - Z;
+        var zDiff = other.Z - Z;
         return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
     }
 

@@ -6,5 +6,11 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Finnimon.Stl.UI.Simple.MainWindow"
         Title="Finnimon.Stl.UI.Simple">
-        <ava3D:MeshView Focusable="True" x:Name="MeshView"/>
+        <!-- <StackPanel Orientation="Vertical" Spacing="0"> -->
+        <!--         <Menu Height="50"> -->
+        <!--         </Menu> -->
+        <!--         <Viewbox> -->
+                        <ava3D:MeshView Focusable="True" x:Name="MeshView"/>
+        <!--         </Viewbox> -->
+        <!-- </StackPanel> -->
 </Window>

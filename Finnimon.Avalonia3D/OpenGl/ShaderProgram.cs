@@ -53,9 +53,12 @@ public class ShaderProgram() : IGlObject
 
     public void SetMatrix4(string name, ref Matrix4 matrix)
     {
-        var location= GL.GetUniformLocation(Id, name);
+        var location = GetUniformLocation(name);
         GL.UniformMatrix4(location, false, ref matrix);
     }
+    
+    public int GetAttribLocation(string attribName) => GL.GetAttribLocation(Id,attribName);
+    public int GetUniformLocation(string uniformName) => GL.GetUniformLocation(Id,uniformName);
 
     ~ShaderProgram() => Delete();
 }

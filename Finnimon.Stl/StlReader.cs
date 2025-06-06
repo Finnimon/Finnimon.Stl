@@ -7,6 +7,7 @@ namespace Finnimon.Stl;
 
 public static class StlReader
 {
+    public static Stl Read(string path) => Read(File.OpenRead(path));
     public static Stl Read(Stream stream, bool leaveOpen = false)
     {
         var solid = new byte[5];

@@ -9,12 +9,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        MeshView.SetMesh(Mesh);
-        var cam=MeshView.Camera;
-        cam.MoveForwards(-50);
-        Console.WriteLine(cam.Distance);
-        Console.WriteLine(cam.OrbitAround);
-        Console.WriteLine(cam.GetPosition());
+        // var triangles = StlReader.Read("/home/finnimon/repos/Finnimon.Stl/Finnimon.Stl.Benchmark/Files/big.stl")
+        //     .Facets
+        //     .Select(x=>x.Triangle)
+        //     .ToArray();
+        // var mesh = new Mesh3D(triangles);
+        var mesh = Mesh;
+        MeshView.SetMesh(mesh);
     }
 
     private static Mesh3D Simplmesh()
