@@ -10,6 +10,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         MeshView.SetMesh(Mesh);
+        var cam=MeshView.Camera;
+        cam.MoveForwards(-50);
+        Console.WriteLine(cam.Distance);
+        Console.WriteLine(cam.OrbitAround);
+        Console.WriteLine(cam.GetPosition());
     }
 
     private static Mesh3D Simplmesh()
@@ -20,7 +25,7 @@ public partial class MainWindow : Window
     public static Mesh3D Mesh
     {
         get {
-            var stl = StlReader.Read(File.OpenRead("Cube_3d_printing_sample.stl"));
+            var stl = StlReader.Read(File.OpenRead("./Cube_3d_printing_sample.stl"));
             return new Mesh3D(stl.Facets.Select(facet=>facet.Triangle).ToArray());
         }
     }

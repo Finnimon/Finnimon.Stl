@@ -18,35 +18,35 @@ public class StlCalculations
     #region centroid
     [Benchmark]
     public Vertex3D ParallelVertexCentroid()
-        => Mesh3D.CalculateCentroid(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Vertex);
+        => Mesh3D.CalculateCentroidParallel(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Vertex);
     [Benchmark]
     public Vertex3D ParallelAreaCentroid()
-        => Mesh3D.CalculateCentroid(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Area);
+        => Mesh3D.CalculateCentroidParallel(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Area);
     [Benchmark]
     public Vertex3D ParallelVolumeCentroid()
-        => Mesh3D.CalculateCentroid(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Volume);
+        => Mesh3D.CalculateCentroidParallel(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Volume);
     
     
     [Benchmark]
     public Vertex3D SequentialVertexCentroid()
-        => Mesh3D.CalculateCentroidSeq(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Vertex);
+        => Mesh3D.CalculateCentroidSequential(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Vertex);
     [Benchmark]
     public Vertex3D SequentialAreaCentroid()
-        => Mesh3D.CalculateCentroidSeq(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Area);
+        => Mesh3D.CalculateCentroidSequential(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Area);
     [Benchmark]
     public Vertex3D SequentialVolumeCentroid()
-        => Mesh3D.CalculateCentroidSeq(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Volume);
+        => Mesh3D.CalculateCentroidSequential(_mesh?.Triangles??throw new IncompleteInitialization(), MeshCentroidType.Volume);
     #endregion
     #region volume
     [Benchmark]
-    public double ParallelVolume()=>Mesh3D.CalculateVolume(_mesh?.Triangles??throw new IncompleteInitialization());
+    public double ParallelVolume()=>Mesh3D.CalculateVolumeParallel(_mesh?.Triangles??throw new IncompleteInitialization());
     [Benchmark]
-    public double SequentialVolume()=>Mesh3D.CalculateVolumeSeq(_mesh?.Triangles??throw new IncompleteInitialization());
+    public double SequentialVolume()=>Mesh3D.CalculateVolumeSequential(_mesh?.Triangles??throw new IncompleteInitialization());
     #endregion
     #region surface
     [Benchmark]
-    public double ParallelSurface()=>Mesh3D.CalculateSurfaceArea(_mesh?.Triangles??throw new IncompleteInitialization());
+    public double ParallelSurface()=>Mesh3D.CalculateSurfaceAreaParallel(_mesh?.Triangles??throw new IncompleteInitialization());
     [Benchmark]
-    public double SequentialSurface()=>Mesh3D.CalculateSurfaceAreaSeq(_mesh?.Triangles??throw new IncompleteInitialization());
+    public double SequentialSurface()=>Mesh3D.CalculateSurfaceAreaSequential(_mesh?.Triangles??throw new IncompleteInitialization());
     #endregion
 }

@@ -2,21 +2,35 @@ using System.Formats.Asn1;
 
 namespace Finnimon.Math;
 
-public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Volume) : IVolume3D
+public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Volume,float Area) : IVolume3D
 {
     public Mesh3D(Triangle3D[] triangles, MeshCentroidType centroidType = MeshCentroidType.Vertex) : this(triangles,
-        CalculateCentroid(triangles, centroidType), CalculateVolume(triangles))
+        CalculateCentroid(triangles, centroidType), CalculateVolume(triangles),CalculateSurfaceArea(triangles))
     {
     }
 
     #region Calculations
+    public static float CalculateSurfaceArea(Triangle3D[] triangles)
+        => SystemInfo.ProcessorCount > 4
+            ? CalculateSurfaceAreaParallel(triangles)
+            : CalculateSurfaceAreaSequential(triangles);
+
+    public static float CalculateVolume(Triangle3D[] triangles)
+        => SystemInfo.ProcessorCount > 4
+            ? CalculateVolumeParallel(triangles)
+            : CalculateVolumeSequential(triangles);
+
+    public static Vertex3D CalculateCentroid(Triangle3D[] triangles, MeshCentroidType type)
+        => SystemInfo.ProcessorCount > 4
+            ? CalculateCentroidParallel(triangles, type)
+            : CalculateCentroidSequential(triangles, type);
 
     #region parallel
 
-    public static float CalculateSurfaceArea(IEnumerable<Triangle3D> triangles) =>
+    public static float CalculateSurfaceAreaParallel(IEnumerable<Triangle3D> triangles) =>
         triangles.AsParallel().Sum(x => x.Area);
 
-    public static Vertex3D CalculateCentroid(Triangle3D[] triangles, MeshCentroidType type)
+    public static Vertex3D CalculateCentroidParallel(Triangle3D[] triangles, MeshCentroidType type)
         => type switch
         {
             MeshCentroidType.Vertex => CalculateVertexCentroid(triangles),
@@ -49,7 +63,7 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
                 total => total.Centroid / total.Area
             );
 
-    private static Vertex3D CalculateVolumeCentroid(IEnumerable<Triangle3D> triangles) 
+    private static Vertex3D CalculateVolumeCentroid(IEnumerable<Triangle3D> triangles)
         => triangles
             .AsParallel()
             .Select((Vertex3D Centroid, float Volume) (x) => ((x.A + x.B + x.C) / 4, SignedTetrahedronVolume(x)))
@@ -57,25 +71,26 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
             .Aggregate(
                 (float Volume, Vertex3D Centroid) () => (0, Vertex3D.Zero),
                 (aggregate, position) => (aggregate.Volume + position.Volume, aggregate.Centroid + position.Centroid),
-                (subtotal1, subtotal2) => (subtotal1.Volume + subtotal2.Volume, subtotal1.Centroid + subtotal2.Centroid),
-                total=>total.Centroid/total.Volume
+                (subtotal1, subtotal2) =>
+                    (subtotal1.Volume + subtotal2.Volume, subtotal1.Centroid + subtotal2.Centroid),
+                total => total.Centroid / total.Volume
             );
 
-    public static float CalculateVolume(IEnumerable<Triangle3D> triangles)
-        => float.Abs(triangles.AsParallel().Sum(x=>SignedTetrahedronVolume(in x)));
+    public static float CalculateVolumeParallel(IEnumerable<Triangle3D> triangles)
+        => float.Abs(triangles.AsParallel().Sum(x => SignedTetrahedronVolume(in x)));
 
     #endregion
 
     #region sequential
 
-    public static float CalculateVolumeSeq(Triangle3D[] triangles)
+    public static float CalculateVolumeSequential(Triangle3D[] triangles)
     {
         var volume = 0f;
         for (var i = 0; i < triangles.Length; i++) volume += SignedTetrahedronVolume(in triangles[i]);
         return float.Abs(volume);
     }
 
-    public static float CalculateSurfaceAreaSeq(Triangle3D[] triangles)
+    public static float CalculateSurfaceAreaSequential(Triangle3D[] triangles)
     {
         var surface = 0f;
         for (var i = 0; i < triangles.Length; i++) surface += triangles[i].Area;
@@ -83,7 +98,7 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
     }
 
 
-    public static Vertex3D CalculateCentroidSeq(Triangle3D[] triangles, MeshCentroidType type)
+    public static Vertex3D CalculateCentroidSequential(Triangle3D[] triangles, MeshCentroidType type)
         => type switch
         {
             MeshCentroidType.Vertex => CalculateVertexCentroidSeq(triangles),

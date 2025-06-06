@@ -46,12 +46,12 @@ var infoMessage =
         Name          =  {stl.Name ?? ""}
         Header        =  {stl.Header}
         Facet Count   =  {stl.Facets.Count}
-        Surface Area  =  {Mesh3D.CalculateSurfaceArea(mesh.Triangles):F2}
+        Surface Area  =  {Mesh3D.CalculateSurfaceAreaParallel(mesh.Triangles):F2}
         Volume        =  {mesh.Volume:F2}
         Centroids:    
-             Vertex   =  {Mesh3D.CalculateCentroid(mesh.Triangles, MeshCentroidType.Vertex).Pretty()}
-             Area     =  {Mesh3D.CalculateCentroid(mesh.Triangles, MeshCentroidType.Area).Pretty()}
-             Volume   =  {Mesh3D.CalculateCentroid(mesh.Triangles, MeshCentroidType.Volume).Pretty()}
+             Vertex   =  {Mesh3D.CalculateCentroidParallel(mesh.Triangles, MeshCentroidType.Vertex).Pretty()}
+             Area     =  {Mesh3D.CalculateCentroidParallel(mesh.Triangles, MeshCentroidType.Area).Pretty()}
+             Volume   =  {Mesh3D.CalculateCentroidParallel(mesh.Triangles, MeshCentroidType.Volume).Pretty()}
 
      Successfully evaluated in {timer.FormattedTimeSinceLastCall()}.
      """;

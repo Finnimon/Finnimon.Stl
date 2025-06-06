@@ -2,21 +2,21 @@ using Finnimon.Math;
 
 namespace Finnimon.Avalonia3D.OpenGl;
 
-public sealed class RenderPipeline<T> : IDisposable where T : struct
+public sealed class RenderPipeline<T> where T : struct
 {
     private VertexArray VertexArray { get; }
     private VertexBuffer<T> VertexBuffer { get; }
     // private ElementBuffer IndicesBuffer { get; }
-    public IList<T> Vertices { get; }
+    public T[] Vertices { get; }
 
-    public RenderPipeline(IList<T> vertices)
+    public RenderPipeline(T[] vertices)
     {
         Vertices = vertices;
         VertexArray = new();
         VertexArray.Bind();
         VertexBuffer = GlObjectHelper.CreateAndCopyInto<VertexBuffer<T>, T>(Vertices);
         VertexBuffer.Bind();
-        VertexArray.Link(3,VertexBuffer);
+        VertexArray.Link((int)GlObjectHelper.ByteSize<T>()/sizeof(float),VertexBuffer);
         // IndicesBuffer=GlObjectHelper.CreateAndCopyInto<ElementBuffer,uint>(indices);
     }
 
@@ -26,8 +26,10 @@ public sealed class RenderPipeline<T> : IDisposable where T : struct
         // VertexBuffer.Bind();
         // IndicesBuffer.Bind();
         // GL.DrawElements(PrimitiveType.Triangles, Indices.Length, DrawElementsType.UnsignedInt, 0);
-        GL.DrawArrays(PrimitiveType.Triangles,0,(int) (GlObjectHelper.ByteSize(Vertices)/sizeof(float)/3));
+        VertexBuffer.Bind();
+        GL.DrawArrays(PrimitiveType.Triangles,0,(int) GlObjectHelper.FloatCount(Vertices));
         // GL.DrawArrays(PrimitiveType.Triangles,0,(int) (Vertices.Count*GlObjectHelper.ByteSize(Vertices)/sizeof(float)));
+        VertexBuffer.Unbind();
         VertexArray.Unbind();
         // VertexBuffer.Unbind();
         // IndicesBuffer.Unbind();
@@ -40,12 +42,13 @@ public sealed class RenderPipeline<T> : IDisposable where T : struct
         for (uint i = 0; i < floatCount; i++) indices[i] = i;
         return indices;
     }
-    
 
-    public void Dispose()
+    ~RenderPipeline()
     {
-        ((IDisposable)VertexArray).Dispose();
-        ((IDisposable)VertexBuffer).Dispose();
-        // ((IDisposable)IndicesBuffer).Dispose();
+        VertexArray.Unbind();
+        VertexArray.Delete();
+        VertexBuffer.Unbind();
+        ((IBufferObject<T>)VertexBuffer).Delete();
     }
+    
 }

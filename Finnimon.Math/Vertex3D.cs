@@ -53,7 +53,7 @@ public readonly record struct Vertex3D(
     public float Dot(in Vertex3D other) => X * other.X + Y * other.Y + Z * other.Z;
     public float Dot(float x, float y, float z) => X * x + Y * y + Z * z;
 
-    public float Distance(in Vertex3D other) => float.Sqrt(SquaredDistance(other.X, other.Y, other.Z));
+    public float Distance(in Vertex3D other) => (other - this).Length;
     public float Distance(float x = 0, float y = 0, float z = 0) => float.Sqrt(SquaredDistance(x, y, z));
 
     public float SquaredDistance(float x = 0, float y = 0, float z = 0)

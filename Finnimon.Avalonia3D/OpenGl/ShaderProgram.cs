@@ -56,4 +56,6 @@ public class ShaderProgram() : IGlObject
         var location= GL.GetUniformLocation(Id, name);
         GL.UniformMatrix4(location, false, ref matrix);
     }
+
+    ~ShaderProgram() => Delete();
 }

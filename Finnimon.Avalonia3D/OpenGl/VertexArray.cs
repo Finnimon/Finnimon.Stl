@@ -6,6 +6,8 @@ public class VertexArray():IGlObject
     private int _linked = 0;
     public void Bind()=>this.BindArray();
     public void Unbind()=>this.UnbindArray();
+    public void Delete() => this.DeleteArray();
+
     public void Link<T>(int size,  VertexBuffer<T> vbo) where T : struct
     {
         Bind();

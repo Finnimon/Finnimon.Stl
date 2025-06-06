@@ -14,7 +14,7 @@ public class MeshView : BaseTkOpenGlControl
 {
     private Mesh3D Mesh { get; set; }
     RenderPipeline<Triangle3D> RenderPipeline { get; set; }
-    private OrbitCamera Camera { get; }=new(float.Pi/4,new(),1,0,0);
+    public OrbitCamera Camera { get; }=new(float.Pi/4,new(),1,0,0);
     private ShaderProgram _shader;
     private bool _initialized = false;
     private bool _isDragging = false;
@@ -49,13 +49,27 @@ public class MeshView : BaseTkOpenGlControl
         _shader = ShaderProgram.FromFiles("Shaders/default.vert", "Shaders/default.frag");
         RenderPipeline = new RenderPipeline<Triangle3D>(Mesh?.Triangles??[]);
         _initialized = true;
+        
     }
 
+    private float Red = 0f;
+    private int direction = 1;
     protected override void OpenTkRender()
     {
         GL.Enable(EnableCap.DepthTest);
 
-        GL.ClearColor(0.2f, 0f, 0.2f, 1.0f);
+        GL.ClearColor(Red, 0f, 0.2f, 1.0f);
+        Red += direction*0.002f;
+        if (Red > 1.0f)
+        {
+            direction = -1;
+            Red = 1.0f;
+        }
+        else if (Red < 0.0f)
+        {
+            direction = 1;
+            Red = 0.0f;
+        }
         //Clear the previous frame
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -72,9 +86,9 @@ public class MeshView : BaseTkOpenGlControl
     protected override void OpenTkTeardown()
     {
         Console.WriteLine("Teardown.");
+        RenderPipeline = null;
         _shader?.Unbind();
-        _shader?.Delete();
-        RenderPipeline?.Dispose();
+        _shader = null;
     }
     private void DoRender()
     {

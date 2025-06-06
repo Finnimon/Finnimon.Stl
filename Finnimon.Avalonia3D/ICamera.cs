@@ -44,12 +44,13 @@ public class OrbitCamera(float fovRad,Vertex3D orbitAround, float distance, floa
 
     public void LookAt(Vertex3D target)=> OrbitAround=target;
 
-    public void MoveForwards(float signedMovementScale) => Distance = System.Math.Max(Distance+signedMovementScale,0.01f);
+    public void MoveForwards(float signedMovementScale) => Distance = System.Math.Max(Distance-signedMovementScale,0.01f);
 
     public void MoveUp(float signedMovementScalar) => CameraPitchRad += signedMovementScalar;
 
     public (Matrix4 model, Matrix4 view, Matrix4 projection) CreateRenderMatrices(float aspect)
     {
+        Console.WriteLine(GetPosition());
         var model = Matrix4.Identity;
         var view = Matrix4.LookAt(GetPosition().ToOpenTk(), OrbitAround.ToOpenTk() , Vector3.UnitY);
         var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FovRad), aspect, 0.1f, 100.0f);

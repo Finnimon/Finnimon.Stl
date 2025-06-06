@@ -5,7 +5,7 @@ namespace Finnimon.Math;
 
 [StructLayout(LayoutKind.Explicit, Size = 36)]
 public readonly record struct Triangle3D(
-    [field: FieldOffset(0)] Vertex3D A,
+    [field: FieldOffset(00)] Vertex3D A,
     [field: FieldOffset(12)] Vertex3D B,
     [field: FieldOffset(24)] Vertex3D C) : IFace3D
 {
@@ -20,4 +20,15 @@ public readonly record struct Triangle3D(
             ref Unsafe.As<Triangle3D, float>(ref Unsafe.AsRef(in triangle)),
             length: 9
         );
+
+    public unsafe double this[int i]
+    {
+        get
+        {
+            if(i.InsideInclusiveRange(0,8))
+                fixed (Triangle3D* ptr = &this)
+                    return ((float*)ptr)[i];
+            throw new IndexOutOfRangeException();
+        }
+    }
 }

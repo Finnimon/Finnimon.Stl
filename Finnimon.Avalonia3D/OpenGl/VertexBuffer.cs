@@ -10,4 +10,5 @@ public class VertexBuffer<T>() :IBufferObject<T> where T : struct
 
     public void Unbind() => this.UnbindBuffer();
     public BufferTarget BufferTarget => BufferTarget.ArrayBuffer;
+    
 }
