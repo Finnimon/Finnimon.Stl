@@ -1,8 +1,6 @@
 using Avalonia;
 using Finnimon.Math;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using OpenTKAvalonia;
 
 namespace Finnimon.Avalonia3D;
 

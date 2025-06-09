@@ -19,7 +19,7 @@ public class Camera
         var model = Matrix4.CreateRotationY(MathHelper.DegreesToRadians(_modelRotationDegrees));
         var view = Matrix4.LookAt(_cameraPosition, _cameraPosition + _cameraFront, _up);
         var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(_fov),
-            (float)(bounds.Width / bounds.Height), 0.1f, 100.0f);
+            (float)(bounds.Width / bounds.Height), 0, 100.0f);
         return (model, view, projection);
     }
     

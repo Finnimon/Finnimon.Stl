@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace Finnimon.Avalonia3D.OpenGl;
 
 public class ElementBuffer():IBufferObject<uint>

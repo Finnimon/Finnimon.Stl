@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finnimon.Stl.Net", "Finnimo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finnimon.Stl.Benchmark", "Finnimon.Stl.Benchmark\Finnimon.Stl.Benchmark.csproj", "{36A82CCE-7B83-4207-9AB4-AABB19106EF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finnimon.Extensions", "Finnimon.Extensions\Finnimon.Extensions.csproj", "{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{36A82CCE-7B83-4207-9AB4-AABB19106EF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36A82CCE-7B83-4207-9AB4-AABB19106EF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36A82CCE-7B83-4207-9AB4-AABB19106EF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

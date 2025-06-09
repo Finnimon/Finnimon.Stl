@@ -8,7 +8,9 @@ public class ShaderProgram() : IGlObject
 
     public ShaderProgram(string vertexShaderCode, string fragmentShaderCode) : this() =>
         CompileShaders(Id,vertexShaderCode, fragmentShaderCode);
-
+    
+    public static ShaderProgram FromFiles(string basePath)
+    =>FromFiles(Path.ChangeExtension(basePath, "vert"),Path.ChangeExtension(basePath, "frag"));
     public static ShaderProgram FromFiles(string vertFile, string fragFile)
         => new (File.ReadAllText(vertFile), File.ReadAllText(fragFile));
 
@@ -25,13 +27,13 @@ public class ShaderProgram() : IGlObject
         GL.AttachShader(programId, vertexShader);
         
         var vertInfo= GL.GetShaderInfoLog(vertexShader);
-        if (vertInfo != string.Empty) Console.Error.WriteLine($"UI: Error compiling fragment shader: {vertInfo}");
+        if (vertInfo is {Length:>0}) Console.Error.WriteLine($"UI: Error compiling fragment shader: {vertInfo}");
 
         var fragmentShader=CreateShader(fragmentShaderCode, ShaderType.FragmentShader);
         GL.AttachShader(programId, fragmentShader);
         
         var fragInfo= GL.GetShaderInfoLog(fragmentShader);
-        if (fragInfo != string.Empty) Console.Error.WriteLine($"UI: Error compiling fragment shader: {fragInfo}");
+        if (fragInfo is {Length:>0}) Console.Error.WriteLine($"UI: Error compiling fragment shader: {fragInfo}");
 
         // Link the program to OpenGL
         GL.LinkProgram(programId);
@@ -55,6 +57,12 @@ public class ShaderProgram() : IGlObject
     {
         var location = GetUniformLocation(name);
         GL.UniformMatrix4(location, false, ref matrix);
+    }
+
+    public void SetVec4(string name, in Vector4 vec)
+    {
+        var location = GetUniformLocation(name);
+        GL.Uniform4(location,vec);
     }
     
     public int GetAttribLocation(string attribName) => GL.GetAttribLocation(Id,attribName);

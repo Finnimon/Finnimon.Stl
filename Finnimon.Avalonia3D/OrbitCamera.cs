@@ -24,26 +24,17 @@ public class OrbitCamera(float fovRad, Vertex3D orbitAround, float distance, flo
 
     public void MoveToSides(float signedMovementScale) => AzimuthRad += signedMovementScale;
 
-    public void MoveUp(float signedMovementScalar)
-    {
-        PitchRad = MathHelper.Clamp(PitchRad + signedMovementScalar, -MathF.PI / 2f + 0.01f, MathF.PI / 2f - 0.01f);
-    }
+    public void MoveUp(float signedMovementScalar) => PitchRad = MathHelper.Clamp(PitchRad + signedMovementScalar, -MathF.PI / 2f + 0.01f, MathF.PI / 2f - 0.01f);
 
-    public void MoveForwards(float signedMovementScale)
-    {
-        Distance = MathF.Max(Distance - signedMovementScale, 0.01f);
-    }
+    public void MoveForwards(float signedMovementScale) => Distance = MathF.Max(Distance - signedMovementScale, 0.01f);
 
-    public void LookAt(Vertex3D target)
-    {
-        OrbitAround = target;
-    }
+    public void LookAt(Vertex3D target) => OrbitAround = target;
 
     public (Matrix4 model, Matrix4 view, Matrix4 projection) CreateRenderMatrices(float aspect)
     {
         var model = Matrix4.Identity;
         var view = Matrix4.LookAt(GetPosition().ToOpenTk(), OrbitAround.ToOpenTk(), Vector3.UnitZ);
-        var projection = Matrix4.CreatePerspectiveFieldOfView(FovRad, aspect, 0.1f, 1000f);
+        var projection = Matrix4.CreatePerspectiveFieldOfView(FovRad, aspect, 0.001f, Distance*4);
         return (model, view, projection);
     }
 }

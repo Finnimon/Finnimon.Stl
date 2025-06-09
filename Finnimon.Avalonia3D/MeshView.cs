@@ -1,155 +1,222 @@
-using System.Diagnostics;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Input;
 using Finnimon.Avalonia3D.OpenGl;
 using Finnimon.Math;
-using OpenTK;
 using OpenTK.Mathematics;
 using OpenTKAvalonia;
-using SkiaSharp;
 
 namespace Finnimon.Avalonia3D;
 
 public class MeshView : BaseTkOpenGlControl
 {
-    private Mesh3D Mesh { get; set; }
-
+    #region props and fields
     public OrbitCamera Camera { get; }=new(float.Pi/4,Vertex3D.Zero,1,0,0);
-    private ShaderProgram _shader;
-    private bool _initialized = false;
-    private bool _isDragging = false;
-    private Point _lastPos;
+    public RenderMode RenderModeFlags { get; set; } = RenderMode.Solid|RenderMode.WireFrame;
+    public Vertex4D BgColor { get; set; } = new (0.2f, 0, 0.2f, 1);
+    public Vertex4D WireFrameColor
+    {
+        get => _wireFrameColor;
+        set
+        {
+            _newWireFrameColor = true;
+            _wireFrameColor = value;
+        }
+    }
+    
+    private ShadedTriangle[] Triangles { get; set; } = [];
+    private ShaderProgram SolidShader { get; set; }
+    private ShaderProgram WireFrameShader { get; set; }
+    
     private int _vbo;
     private int _vao;
     private bool _newMesh;
 
+    private Vertex4D _wireFrameColor = new (1, 1, 1, 1);
+    private bool _newWireFrameColor = true;
+    
+    private bool _isDragging = false;
+    private Point _lastPos;
+    
+    #endregion
+    
     public MeshView() : this(null)
     {
     }
 
     public MeshView(Mesh3D mesh)
     {
-        Mesh = mesh;
+        SetMesh(mesh);
     }
-
+    
+    public void ClearMesh()=>SetMesh(null);
+    
     public void SetMesh(Mesh3D mesh)
     {
-        if (mesh is null) return;
-        Mesh = mesh;
-        Camera.LookAt(mesh.Centroid);
-        _newMesh = _initialized;
+        Camera.LookAt(mesh?.Centroid??Vertex3D.Zero);
+        _newMesh = true;
+        Triangles = ShadedTriangle.ShadedTriangles(mesh?.Triangles??[]);
     }
 
 
     protected override void OpenTkInit()
     {
-        GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        _shader = ShaderProgram.FromFiles("Shaders/default.vert", "Shaders/default.frag");
-        _initialized = true;
-        _shader.Bind();
-        
+        GL.ClearColor(BgColor.X,BgColor.Y, BgColor.Z, BgColor.W);
+        SolidShader = ShaderProgram.FromFiles("Shaders/default");
+        WireFrameShader = ShaderProgram.FromFiles("Shaders/solidcolor");
         _vao=GL.GenVertexArray();
-        _vbo=GL.GenBuffer();
-        
-        GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-
-        GL.BufferData(BufferTarget.ArrayBuffer,(int)GlObjectHelper.ByteSize(Mesh.Triangles),Mesh.Triangles, BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0,3, VertexAttribPointerType.Float, false, 0, 0);
-        GL.EnableVertexAttribArray(0);
-
     }
-
-    private float Red = 0f;
-    private int direction = 1;
 
     protected override void OpenTkRender()
     {
-        //Update camera pos etc
         DoUpdate();
-
-        //Render the object(s)
         DoRender();
-
-        //Clean up the opengl state back to how we got it
-        GL.Disable(EnableCap.DepthTest);
     }
 
     protected override void OpenTkTeardown()
     {
-        Console.WriteLine("Teardown.");
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.DeleteBuffer(_vbo);
         GL.BindVertexArray(0);
         GL.DeleteVertexArray(_vao);
-        _shader?.Unbind();
-        _shader = null;
+        SolidShader?.Unbind();
+        SolidShader = null;
+        WireFrameShader?.Unbind();
+        WireFrameShader = null;
     }
+
+    #region do render
+    
     private void DoRender()
     {
         GL.Enable(EnableCap.DepthTest);
-
-        GL.ClearColor(Red, 0f, 0.2f, 1.0f);
-        
-        //Clear the previous frame
+        GL.Enable(EnableCap.CullFace);
+        GL.BindVertexArray(_vao);
+        GL.ClearColor(BgColor.X,BgColor.Y, BgColor.Z, BgColor.W);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         
-        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-        _shader.Bind();
         var (model, view, projection) = Camera.CreateRenderMatrices((float)(Bounds.Width / Bounds.Height));
-        _shader.SetMatrix4(nameof(model), ref model);
-        _shader.SetMatrix4(nameof(view), ref view);
-        _shader.SetMatrix4(nameof(projection), ref projection);
-        GL.BindVertexArray(_vao);
-        GL.DrawArrays(PrimitiveType.Triangles, 0,Mesh.Triangles.Length*3);
+
+        //actual Render Calls
+        
+        if((RenderModeFlags & RenderMode.Solid)==RenderMode.Solid) SolidRender(ref model, ref view, ref projection);
+        if((RenderModeFlags&RenderMode.WireFrame)==RenderMode.WireFrame) WireFrameRender(ref model, ref view, ref projection);
+        
         var err = GL.GetError();
         if (err != ErrorCode.NoError) Console.WriteLine($"GL Error: {err}");
-        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+        
+        
+        //Clean up the opengl state back to how we got it
+        GL.Disable(EnableCap.DepthTest);
+        GL.Disable(EnableCap.CullFace);
+        GL.BindVertexArray(0);
     }
 
+    private void SolidRender(ref Matrix4 model, ref Matrix4 view, ref Matrix4 projection)
+    {
+        GL.PolygonMode(MaterialFace.FrontAndBack,PolygonMode.Fill);
+        SolidShader.Bind();
+        SolidShader.SetMatrix4(nameof(model), ref model);
+        SolidShader.SetMatrix4(nameof(view), ref view);
+        SolidShader.SetMatrix4(nameof(projection), ref projection);
+        GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
+        SolidShader.Unbind();
+    }
+
+    private void WireFrameRender(ref Matrix4 model, ref Matrix4 view, ref Matrix4 projection)
+    {
+        GL.PolygonMode(MaterialFace.FrontAndBack,PolygonMode.Line);
+        WireFrameShader.Bind();
+        WireFrameShader.SetMatrix4(nameof(model), ref model);
+        WireFrameShader.SetMatrix4(nameof(view), ref view);
+        WireFrameShader.SetMatrix4(nameof(projection), ref projection);
+        GL.LineWidth(2.5f);
+        GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
+        GL.LineWidth(1f);
+        WireFrameShader.Unbind();
+        GL.PolygonMode(MaterialFace.FrontAndBack,PolygonMode.Fill);
+    }
+
+    private static readonly int MaxDrawSize = Environment.SystemPageSize * 1024;
+    private static void SplitTriangleDrawCall(PrimitiveType primitiveType, int triangleCount, int vertexByteSize)
+    {
+        var triangleByteSize = vertexByteSize * 3;
+        var vertexCount=triangleCount*3;
+        
+        var totalSize=vertexCount*vertexByteSize;
+        var maxDrawByteSize = MaxDrawSize;
+        var singleCall = totalSize < maxDrawByteSize;
+        
+        if (singleCall)
+        {
+            GL.DrawArrays(PrimitiveType.Triangles, 0,vertexCount);
+            return;
+        }
+        
+        var trianglesPerDrawCall=maxDrawByteSize/triangleByteSize;
+        var verticesPerDrawCall = trianglesPerDrawCall * 3;
+        var drawCallByteSize=trianglesPerDrawCall*triangleByteSize;
+        var chunkedCallCount=totalSize/drawCallByteSize;
+        var drawnVertices = 0;
+        for (var i = 0; i < chunkedCallCount; i++)
+        {
+            GL.DrawArrays(PrimitiveType.Triangles,drawnVertices,verticesPerDrawCall);
+            drawnVertices+=verticesPerDrawCall;
+        }
+        var remaining=vertexCount-drawnVertices;
+        if (remaining<=0) return;
+        GL.DrawArrays(PrimitiveType.Triangles,drawnVertices,remaining);
+    }
+
+    #endregion
+    
+    #region do update
+
+    
     private void DoUpdate()
     {
-        UpdateBgColor();
-
+        UpdateWfShader();
         UpdateMesh();
     }
 
-    private void UpdateBgColor()
+    private void UpdateWfShader()
     {
-        Red += direction*0.002f;
-        if (Red > 1.0f)
-        {
-            direction = -1;
-            Red = 1.0f;
-        }
-        else if (Red < 0.0f)
-        {
-            direction = 1;
-            Red = 0.0f;
-        }
+        if (!_newWireFrameColor) return;
+        _newWireFrameColor = false;
+        WireFrameShader.Bind();
+        WireFrameShader.SetVec4("uniform_color",WireFrameColor.ToOpenTk());
+        WireFrameShader.Unbind();
     }
+
 
     private void UpdateMesh()
     {
         if (!_newMesh) return;
-        
+        _newMesh = false;
         GL.BindVertexArray(_vao);
         GL.BindBuffer(BufferTarget.ArrayBuffer,0);
-        GL.DeleteBuffer(_vbo);
+        if(_vbo!=0) GL.DeleteBuffer(_vbo);
         _vbo = GL.GenBuffer();
-        
+                
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer,(int)GlObjectHelper.ByteSize(Mesh.Triangles),Mesh.Triangles, BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0,3, VertexAttribPointerType.Float, false, 0, 0);
-        GL.EnableVertexAttribArray(0);
-
+        GL.BufferData(BufferTarget.ArrayBuffer,(int) GlObjectHelper.ByteSize(Triangles), Triangles, BufferUsageHint.StaticDraw);
+        
+        const int attribLocation = 0;
+        if (SolidShader.GetAttribLocation("shaded_vertex_position") != attribLocation
+            || WireFrameShader.GetAttribLocation("solid_color_vertex_position") != attribLocation)
+        {
+            Console.WriteLine("Shaders misaligned");
+            throw new Exception("Shaders misaligned");
+        }
+        GL.VertexAttribPointer(attribLocation,4, VertexAttribPointerType.Float, false, 0, 0);
+        GL.EnableVertexAttribArray(attribLocation);
+        
+        GL.BindBuffer(BufferTarget.ArrayBuffer,0);
+        GL.BindVertexArray(0);
     }
 
-    #region Camera updates
+    #endregion
 
-    
-    
+    #region Camera updates
     
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {

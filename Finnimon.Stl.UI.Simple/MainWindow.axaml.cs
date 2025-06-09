@@ -9,25 +9,23 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        // var triangles = StlReader.Read("/home/finnimon/repos/Finnimon.Stl/Finnimon.Stl.Benchmark/Files/big.stl")
-        //     .Facets
-        //     .Select(x=>x.Triangle)
-        //     .ToArray();
-        // var mesh = new Mesh3D(triangles);
-        var mesh = Mesh;
+        // var mesh = Simplmesh();
+        var mesh = ComplexMesh();
+        MeshView.RenderModeFlags = RenderMode.Solid;
         MeshView.SetMesh(mesh);
     }
 
     private static Mesh3D Simplmesh()
     {
-        var triangle = new Triangle3D(new(Y: 1), new(Z: 1), new(Y: -1));
-        return new([triangle]);
+        var stl = StlReader.Read(File.OpenRead("./Cube_3d_printing_sample.stl"));
+        return new Mesh3D(stl.Facets.Select(facet=>facet.Triangle).ToArray());
     }
-    public static Mesh3D Mesh
+    public static Mesh3D ComplexMesh()
     {
-        get {
-            var stl = StlReader.Read(File.OpenRead("./Cube_3d_printing_sample.stl"));
-            return new Mesh3D(stl.Facets.Select(facet=>facet.Triangle).ToArray());
-        }
+        var triangles = StlReader.Read("/home/finnimon/repos/TestFiles/artillery-witch.stl")
+            .Facets
+            .Select(x=>x.Triangle)
+            .ToArray();
+        return new Mesh3D(triangles);
     }
 }

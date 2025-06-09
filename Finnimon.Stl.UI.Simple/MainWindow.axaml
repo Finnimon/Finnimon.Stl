@@ -9,8 +9,8 @@
         <!-- <StackPanel Orientation="Vertical" Spacing="0"> -->
         <!--         <Menu Height="50"> -->
         <!--         </Menu> -->
-        <!--         <Viewbox> -->
+            <!-- <Viewbox> -->
                         <ava3D:MeshView Focusable="True" x:Name="MeshView"/>
-        <!--         </Viewbox> -->
+            <!-- </Viewbox> -->
         <!-- </StackPanel> -->
 </Window>

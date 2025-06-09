@@ -1,5 +1,3 @@
-using Finnimon.Math;
-
 namespace Finnimon.Avalonia3D.OpenGl;
 
 public sealed class RenderPipeline<T> where T : struct
