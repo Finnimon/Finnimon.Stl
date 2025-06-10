@@ -15,6 +15,11 @@
                                 <MenuItem Header="WireframedSolid" x:Name="WireframedSolid" Click="SetRenderMode"/>
                         </MenuItem>
                 </Menu>
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="50">
+                        <TextBlock x:Name="CentroidBlock"/>
+                        <TextBlock x:Name="VolumeBlock"/>
+                        <TextBlock x:Name="SurfBlock"/>
+                </StackPanel>
                 <Border DockPanel.Dock="Top">
                         <ava3D:MeshView Focusable="True" x:Name="MeshView"/>
                 </Border>

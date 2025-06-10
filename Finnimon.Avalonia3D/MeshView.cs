@@ -121,8 +121,8 @@ public class MeshView : BaseTkOpenGlControl
         SolidShader.SetMatrix4(nameof(model), ref model);
         SolidShader.SetMatrix4(nameof(view), ref view);
         SolidShader.SetMatrix4(nameof(projection), ref projection);
-        // GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
-        SplitTriangleDrawCall((uint) Triangles.LongLength,(int)GlObjectHelper.ByteSize<ShadedTriangle>());
+        GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
+        // SplitTriangleDrawCall((uint) Triangles.LongLength,(int)GlObjectHelper.ByteSize<ShadedTriangle>());
         SolidShader.Unbind();
     }
 
@@ -134,8 +134,8 @@ public class MeshView : BaseTkOpenGlControl
         WireFrameShader.SetMatrix4(nameof(view), ref view);
         WireFrameShader.SetMatrix4(nameof(projection), ref projection);
         GL.LineWidth(2.5f);
-        // GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
-        SplitTriangleDrawCall((uint) Triangles.LongLength,(int)GlObjectHelper.ByteSize<ShadedTriangle>());
+        GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
+        // SplitTriangleDrawCall((uint) Triangles.LongLength,(int)GlObjectHelper.ByteSize<ShadedTriangle>());
         GL.LineWidth(1f);
         WireFrameShader.Unbind();
         GL.PolygonMode(MaterialFace.FrontAndBack,PolygonMode.Fill);

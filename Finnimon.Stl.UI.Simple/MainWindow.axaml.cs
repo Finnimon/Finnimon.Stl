@@ -15,6 +15,15 @@ public partial class MainWindow : Window
         // var mesh = ComplexMesh();
         MeshView.RenderModeFlags = RenderMode.Solid;
         MeshView.SetMesh(mesh);
+        UpdateBlocks(mesh);
+    }
+
+    private void UpdateBlocks(Mesh3D mesh)
+    {
+        var (triangles, centroid, volume, area) = mesh;
+        CentroidBlock.Text = $"Centroid: X{centroid.X:N2} Y{centroid.Y:N2} Z{centroid.Z:N2}";
+        VolumeBlock.Text = $"Volume: {volume:N2}";
+        SurfBlock.Text=$"Surface area: {area:N2}";
     }
 
     private static Mesh3D Simplmesh()
@@ -54,6 +63,7 @@ public partial class MainWindow : Window
             var stl = StlReader.Read(stlStream, leaveOpen: false);
             var mesh = ToMesh(stl);
             MeshView.SetMesh(mesh);
+            UpdateBlocks(mesh);
         }
         catch (Exception ex)
         {
