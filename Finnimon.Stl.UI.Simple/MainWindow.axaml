@@ -14,6 +14,7 @@
                                 <MenuItem Header="Solid" x:Name="Solid" Click="SetRenderMode"/>
                                 <MenuItem Header="WireframedSolid" x:Name="WireframedSolid" Click="SetRenderMode"/>
                         </MenuItem>
+                        <MenuItem Header="_Peer-Mode"/>
                 </Menu>
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="50">
                         <TextBlock x:Name="CentroidBlock"/>

@@ -13,7 +13,18 @@ public class MeshView : BaseTkOpenGlControl
     #region props and fields
     public OrbitCamera Camera { get; }=new(float.Pi/4,Vertex3D.Zero,1,0,0);
     public RenderMode RenderModeFlags { get; set; } = RenderMode.Solid|RenderMode.WireFrame;
-    public Vertex4D BgColor { get; set; } = new (0.2f, 0, 0.2f, 1);
+
+    public Vertex4D BgColor
+    {
+        get => _bgColor;
+        set => _bgColor=new Vertex4D(
+                X:MathHelper.Clamp(value.X,0f,1f),
+                Y:MathHelper.Clamp(value.Y,0f,1f),
+                Z:MathHelper.Clamp(value.Z,0f,1f),
+                W:MathHelper.Clamp(value.W,0f,1f)
+            );
+    }
+
     public Vertex4D WireFrameColor
     {
         get => _wireFrameColor;
@@ -24,7 +35,7 @@ public class MeshView : BaseTkOpenGlControl
         }
     }
     public double Fps { get;private set; }
-    private readonly Stopwatch FrameTimer=new Stopwatch();
+    private readonly Stopwatch _frameTimer=new Stopwatch();
     private ShadedTriangle[] Triangles { get; set; } = [];
     private ShaderProgram SolidShader { get; set; }
     private ShaderProgram WireFrameShader { get; set; }
@@ -38,7 +49,8 @@ public class MeshView : BaseTkOpenGlControl
     
     private bool _isDragging = false;
     private Point _lastPos;
-    
+    private Vertex4D _bgColor = new (0.2f, 0, 0.2f, 1);
+
     #endregion
     
     public MeshView() : this(null)
@@ -62,7 +74,7 @@ public class MeshView : BaseTkOpenGlControl
 
     protected override void OpenTkInit()
     {
-        FrameTimer.Restart();
+        _frameTimer.Restart();
         GL.ClearColor(BgColor.X,BgColor.Y, BgColor.Z, BgColor.W);
         SolidShader = ShaderProgram.FromFiles("Shaders/default");
         WireFrameShader = ShaderProgram.FromFiles("Shaders/solidcolor");
@@ -92,7 +104,6 @@ public class MeshView : BaseTkOpenGlControl
     private void DoRender()
     {
         GL.Enable(EnableCap.DepthTest);
-        GL.Enable(EnableCap.CullFace);
         GL.BindVertexArray(_vao);
         GL.ClearColor(BgColor.X,BgColor.Y, BgColor.Z, BgColor.W);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -110,20 +121,21 @@ public class MeshView : BaseTkOpenGlControl
         
         //Clean up the opengl state back to how we got it
         GL.Disable(EnableCap.DepthTest);
-        GL.Disable(EnableCap.CullFace);
         GL.BindVertexArray(0);
     }
 
     private void SolidRender(ref Matrix4 model, ref Matrix4 view, ref Matrix4 projection)
     {
+        GL.Enable(EnableCap.CullFace);
         GL.PolygonMode(MaterialFace.FrontAndBack,PolygonMode.Fill);
         SolidShader.Bind();
         SolidShader.SetMatrix4(nameof(model), ref model);
         SolidShader.SetMatrix4(nameof(view), ref view);
         SolidShader.SetMatrix4(nameof(projection), ref projection);
         GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
-        // SplitTriangleDrawCall((uint) Triangles.LongLength,(int)GlObjectHelper.ByteSize<ShadedTriangle>());
+        
         SolidShader.Unbind();
+        GL.Disable(EnableCap.CullFace);
     }
 
     private void WireFrameRender(ref Matrix4 model, ref Matrix4 view, ref Matrix4 projection)
@@ -186,11 +198,10 @@ public class MeshView : BaseTkOpenGlControl
 
     private void UpdateFps()
     {
-        var elapsed=FrameTimer.Elapsed;
-        FrameTimer.Restart();
+        var elapsed=_frameTimer.Elapsed;
+        _frameTimer.Restart();
         var millis= elapsed.Milliseconds;
         Fps = 1000.0 / millis;
-        Console.WriteLine($"{Fps:N0}FPS");
     }
 
     private void UpdateWfShader()
