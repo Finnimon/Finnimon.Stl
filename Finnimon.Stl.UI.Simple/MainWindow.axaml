@@ -6,11 +6,17 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Finnimon.Stl.UI.Simple.MainWindow"
         Title="Finnimon.Stl.UI.Simple">
-        <!-- <StackPanel Orientation="Vertical" Spacing="0"> -->
-        <!--         <Menu Height="50"> -->
-        <!--         </Menu> -->
-            <!-- <Viewbox> -->
+        <DockPanel LastChildFill="True">
+                <Menu DockPanel.Dock="Top">
+                        <MenuItem Header="_Load Stl" Click="LoadStl"/>
+                        <MenuItem Header="_Render Mode">
+                                <MenuItem Header="Wireframe" x:Name="Wireframe" Click="SetRenderMode"/>
+                                <MenuItem Header="Solid" x:Name="Solid" Click="SetRenderMode"/>
+                                <MenuItem Header="WireframedSolid" x:Name="WireframedSolid" Click="SetRenderMode"/>
+                        </MenuItem>
+                </Menu>
+                <Border DockPanel.Dock="Top">
                         <ava3D:MeshView Focusable="True" x:Name="MeshView"/>
-            <!-- </Viewbox> -->
-        <!-- </StackPanel> -->
+                </Border>
+        </DockPanel>
 </Window>

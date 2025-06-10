@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Input;
 using Finnimon.Avalonia3D.OpenGl;
@@ -22,7 +23,8 @@ public class MeshView : BaseTkOpenGlControl
             _wireFrameColor = value;
         }
     }
-    
+    public double Fps { get;private set; }
+    private readonly Stopwatch FrameTimer=new Stopwatch();
     private ShadedTriangle[] Triangles { get; set; } = [];
     private ShaderProgram SolidShader { get; set; }
     private ShaderProgram WireFrameShader { get; set; }
@@ -60,6 +62,7 @@ public class MeshView : BaseTkOpenGlControl
 
     protected override void OpenTkInit()
     {
+        FrameTimer.Restart();
         GL.ClearColor(BgColor.X,BgColor.Y, BgColor.Z, BgColor.W);
         SolidShader = ShaderProgram.FromFiles("Shaders/default");
         WireFrameShader = ShaderProgram.FromFiles("Shaders/solidcolor");
@@ -118,7 +121,8 @@ public class MeshView : BaseTkOpenGlControl
         SolidShader.SetMatrix4(nameof(model), ref model);
         SolidShader.SetMatrix4(nameof(view), ref view);
         SolidShader.SetMatrix4(nameof(projection), ref projection);
-        GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
+        // GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
+        SplitTriangleDrawCall((uint) Triangles.LongLength,(int)GlObjectHelper.ByteSize<ShadedTriangle>());
         SolidShader.Unbind();
     }
 
@@ -130,14 +134,15 @@ public class MeshView : BaseTkOpenGlControl
         WireFrameShader.SetMatrix4(nameof(view), ref view);
         WireFrameShader.SetMatrix4(nameof(projection), ref projection);
         GL.LineWidth(2.5f);
-        GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
+        // GL.DrawArrays(PrimitiveType.Triangles, 0,Triangles.Length*3);
+        SplitTriangleDrawCall((uint) Triangles.LongLength,(int)GlObjectHelper.ByteSize<ShadedTriangle>());
         GL.LineWidth(1f);
         WireFrameShader.Unbind();
         GL.PolygonMode(MaterialFace.FrontAndBack,PolygonMode.Fill);
     }
 
     private static readonly int MaxDrawSize = Environment.SystemPageSize * 1024;
-    private static void SplitTriangleDrawCall(PrimitiveType primitiveType, int triangleCount, int vertexByteSize)
+    private static void SplitTriangleDrawCall(uint triangleCount, int vertexByteSize)
     {
         var triangleByteSize = vertexByteSize * 3;
         var vertexCount=triangleCount*3;
@@ -148,7 +153,7 @@ public class MeshView : BaseTkOpenGlControl
         
         if (singleCall)
         {
-            GL.DrawArrays(PrimitiveType.Triangles, 0,vertexCount);
+            GL.DrawArrays(PrimitiveType.Triangles, 0,(int) vertexCount);
             return;
         }
         
@@ -162,7 +167,7 @@ public class MeshView : BaseTkOpenGlControl
             GL.DrawArrays(PrimitiveType.Triangles,drawnVertices,verticesPerDrawCall);
             drawnVertices+=verticesPerDrawCall;
         }
-        var remaining=vertexCount-drawnVertices;
+        var remaining=(int)(vertexCount - drawnVertices);
         if (remaining<=0) return;
         GL.DrawArrays(PrimitiveType.Triangles,drawnVertices,remaining);
     }
@@ -174,8 +179,18 @@ public class MeshView : BaseTkOpenGlControl
     
     private void DoUpdate()
     {
+        UpdateFps();
         UpdateWfShader();
         UpdateMesh();
+    }
+
+    private void UpdateFps()
+    {
+        var elapsed=FrameTimer.Elapsed;
+        FrameTimer.Restart();
+        var millis= elapsed.Milliseconds;
+        Fps = 1000.0 / millis;
+        Console.WriteLine($"{Fps:N0}FPS");
     }
 
     private void UpdateWfShader()

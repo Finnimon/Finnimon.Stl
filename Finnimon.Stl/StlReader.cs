@@ -10,49 +10,55 @@ public static class StlReader
     public static Stl Read(string path) => Read(File.OpenRead(path));
     public static Stl Read(Stream stream, bool leaveOpen = false)
     {
-        var solid = new byte[5];
-        var read = stream.Read(solid);
-        stream.Seek(-read, SeekOrigin.Current);
-        return Encoding.ASCII.GetString(solid,0,5).ToLower() switch
+        try
         {
-            nameof(solid) => ReadAscii(stream, leaveOpen),
-            _ => ReadBinary(stream, leaveOpen)
-        };
+            var solid = new byte[5];
+            var read = stream.Read(solid);
+            stream.Seek(-read, SeekOrigin.Current);
+            return Encoding.ASCII.GetString(solid, 0, 5).ToLower() switch
+            {
+                nameof(solid) => ReadAscii(stream),
+                _ => ReadBinary(stream)
+            };
+        }
+        finally
+        {
+            if (!leaveOpen) stream.Close();
+        }
     }
 
     #region binary stl
 
-    private static Stl ReadBinary(Stream stream, bool leaveOpen)
+    private static Stl ReadBinary(Stream stream)
     {
-        using var binary = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
+        using var binary = new BinaryReader(stream, Encoding.UTF8, true);
         var header = new string(binary.ReadChars(80));
         var triangleCount = binary.ReadUInt32();
         var triangles = new StlFacet[triangleCount];
-        var buffer = new float[12];
-        for (uint i = 0; i < triangleCount; i++) triangles[i] = binary.ReadBinaryFacet(buffer);
+        for (uint i = 0; i < triangleCount; i++) triangles[i] = binary.ReadBinaryFacet();
         return new Stl(null, header, triangles);
     }
 
-    private static StlFacet ReadBinaryFacet(this BinaryReader binary, float[] buffer)
+    private static StlFacet ReadBinaryFacet(this BinaryReader binary)
     {
-        // if (buffer.Length < 12) throw new ArgumentException(nameof(buffer));
-        for (var i = 0; i < 12; i++) buffer[i] = binary.ReadSingle();
-        Vertex3D normal = buffer.AsSpan(0, 3);
-        Vertex3D a = buffer.AsSpan(3, 3);
-        Vertex3D b = buffer.AsSpan(6, 3);
-        Vertex3D c = buffer.AsSpan(9, 3);
+        binary.Skip(sizeof(float)*3);
+        Vertex3D a = new(binary.ReadSingle(),binary.ReadSingle(),binary.ReadSingle());
+        Vertex3D b = new(binary.ReadSingle(),binary.ReadSingle(),binary.ReadSingle());
+        Vertex3D c = new(binary.ReadSingle(),binary.ReadSingle(),binary.ReadSingle());
         var attribByteCount = binary.ReadUInt16();
         var triangle = new Triangle3D(a, b, c);
-        return new(triangle, attribByteCount);
+        return new StlFacet(triangle, attribByteCount);
     }
+
+    private static void Skip(this BinaryReader binary, uint count) => binary.BaseStream.Seek(count,SeekOrigin.Current);
 
     #endregion
 
     #region ascii stl
 
-    private static Stl ReadAscii(Stream stream, bool leaveOpen)
+    private static Stl ReadAscii(Stream stream)
     {
-        using var reader = new StreamReader(stream, leaveOpen: leaveOpen);
+        using var reader = new StreamReader(stream,leaveOpen:true);
         var headerLine = reader.ReadLine()?.Trim().Split(' ') ?? [];
         var name = headerLine.Length >= 2 ? headerLine[1] : "";
         var header = headerLine.Length < 3 ? "" : string.Join(' ', headerLine[2..headerLine.Length]);
