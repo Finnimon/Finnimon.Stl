@@ -25,6 +25,8 @@ public class MeshView : BaseTkOpenGlControl
             _triangleBuffer = ShadedTriangle.ShadedTriangles(Mesh.Triangles);
             _newMesh = true;
             Camera.LookAt(Mesh.Centroid);
+            if (Mesh.Triangles.Length <= 0) return;
+            Camera.Distance=Mesh.Triangles[0].A.Distance(Mesh.Centroid)*2;
         }
     }
 
@@ -91,7 +93,7 @@ public class MeshView : BaseTkOpenGlControl
     private Color4 _solidColor;
     private bool _newSolidColor;
 
-    private bool _isDragging = false;
+    private bool _isDragging;
     private Point _lastPos;
     private ShadedTriangle[] _triangleBuffer;
 
@@ -129,7 +131,9 @@ public class MeshView : BaseTkOpenGlControl
     {
         DoUpdate();
         DoRender();
+        DoCsysRender();
     }
+
 
     protected override void OpenTkTeardown()
     {
@@ -144,7 +148,10 @@ public class MeshView : BaseTkOpenGlControl
     }
 
     #region do render
-
+    
+    private void DoCsysRender()
+    {
+    }
     private void DoRender()
     {
         GL.Enable(EnableCap.DepthTest);
@@ -159,15 +166,13 @@ public class MeshView : BaseTkOpenGlControl
         if ((RenderModeFlags & RenderMode.Solid) == RenderMode.Solid) SolidRender(ref model, ref view, ref projection);
         if ((RenderModeFlags & RenderMode.Wireframe) == RenderMode.Wireframe)
             WireframeRender(ref model, ref view, ref projection);
-
         var err = GL.GetError();
         if (err != ErrorCode.NoError) Console.WriteLine($"GL Error: {err}");
-
-
         //Clean up the opengl state back to how we got it
         GL.Disable(EnableCap.DepthTest);
         GL.BindVertexArray(0);
     }
+    
 
     private void SolidRender(ref Matrix4 model, ref Matrix4 view, ref Matrix4 projection)
     {
@@ -200,6 +205,7 @@ public class MeshView : BaseTkOpenGlControl
 
     private static readonly int MaxDrawSize = Environment.SystemPageSize * 1024;
 
+    [Obsolete]
     private static void SplitTriangleDrawCall(uint triangleCount, int vertexByteSize)
     {
         var triangleByteSize = vertexByteSize * 3;

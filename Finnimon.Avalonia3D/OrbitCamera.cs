@@ -6,11 +6,11 @@ namespace Finnimon.Avalonia3D;
 public class OrbitCamera(float fovRad, Vertex3D orbitAround, float distance, float azimuthRad, float pitchRad) : ICamera
 {
     public float FovRad { get; set; } = fovRad;
-    public Vertex3D OrbitAround { get; private set; } = orbitAround;
-    public float Distance { get; private set; } = distance;
+    public Vertex3D OrbitAround { get; set; } = orbitAround;
+    public float Distance { get; set; } = distance;
 
-    public float AzimuthRad { get; private set; } = azimuthRad; // around Z
-    public float PitchRad { get; private set; } = pitchRad;     // around local X
+    public float AzimuthRad { get; set; } = azimuthRad; // around Z
+    public float PitchRad { get; set; } = pitchRad;     // around local X
 
     public Vertex3D GetPosition()
     {

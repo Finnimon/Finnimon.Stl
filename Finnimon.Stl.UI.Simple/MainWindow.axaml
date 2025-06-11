@@ -20,25 +20,21 @@
                                 <MenuItem Header="ASCII" Click="ExportAscii"/>
                         </MenuItem>
                         <MenuItem Header="_Color Settings">
-                                <Border>
-                                        <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Background" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                                                <ColorPicker x:Name="BackgroundColorPicker" HorizontalAlignment="Right" VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
-                                        </StackPanel>
-                                </Border>
-                                <Border>
-                                        <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Wireframe" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                                                <ColorPicker x:Name="WireframeColorPicker" HorizontalAlignment="Right" VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
-                                        </StackPanel>
-                                </Border>
-                                <Border>
-                                        <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Solid" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                                                <ColorPicker x:Name="SolidColorPicker" HorizontalAlignment="Right" VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
-                                        </StackPanel>
-                                </Border>
+                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Background" VerticalAlignment="Center"/>
+                                        <ColorPicker Grid.Row="0" Grid.Column="1" x:Name="BackgroundColorPicker"
+                                                     VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Wireframe" VerticalAlignment="Center"/>
+                                        <ColorPicker Grid.Row="1" Grid.Column="1" x:Name="WireframeColorPicker"
+                                                     VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Solid" VerticalAlignment="Center"/>
+                                        <ColorPicker Grid.Row="2" Grid.Column="1" x:Name="SolidColorPicker"
+                                                     VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
+                                </Grid>
                         </MenuItem>
+
                 </Menu>
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="50">
                         <TextBlock x:Name="CentroidBlock"/>
