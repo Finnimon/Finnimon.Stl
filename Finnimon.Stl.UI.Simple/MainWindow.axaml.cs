@@ -125,28 +125,6 @@ public partial class MainWindow : Window
         }
     }
 
-    [Obsolete]
-    private async void OpenColorSettings(object? sender, RoutedEventArgs e)
-    {
-        e.Handled = true;
-        MeshViewColorPickerWindow? dialog=null;
-        try
-        {
-            dialog=new MeshViewColorPickerWindow(MeshView.AvaloniaBackgroundColor,MeshView.AvaloniaWireframeColor,MeshView.AvaloniaSolidColor);
-            await dialog.ShowDialog(this);
-        }
-        catch (Exception exception)
-        {
-            Console.WriteLine(exception);
-        }
-
-        if (dialog is not { Canceled: false }) return;
-        MeshView.AvaloniaBackgroundColor=dialog.BackgroundColor;
-        MeshView.AvaloniaWireframeColor=dialog.WireframeColor;
-        MeshView.AvaloniaSolidColor=dialog.SolidColor;
-
-    }
-
     private void ColorSettingsChanged(object? sender, ColorChangedEventArgs e)
     {
         if(BackgroundColorPicker.Equals(sender)) MeshView.AvaloniaBackgroundColor = e.NewColor;
