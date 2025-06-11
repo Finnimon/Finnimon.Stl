@@ -163,4 +163,10 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
     }
 
     #endregion
+
+    #region pseudo constants
+
+    public static Mesh3D Empty { get; } = new([], Vertex3D.Zero, 0, 0);
+
+    #endregion
 }

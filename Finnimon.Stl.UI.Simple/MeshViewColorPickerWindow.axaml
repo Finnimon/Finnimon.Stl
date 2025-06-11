@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ac="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.ColorPicker"
+        mc:Ignorable="d"
+        x:Class="Finnimon.Stl.UI.Simple.MeshViewColorPickerWindow"
+        Title="MeshViewColorPickerWindow">
+    <StackPanel Orientation="Vertical">
+        <Border BorderBrush="DarkViolet" BorderThickness="4">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Background" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <ac:ColorPicker x:Name="BackgroundColorPicker" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="DarkViolet" BorderThickness="4">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Wireframe" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <ac:ColorPicker x:Name="WireframeColorPicker" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="DarkViolet" BorderThickness="4">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Solid" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <ac:ColorPicker x:Name="SolidColorPicker" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="DarkViolet" BorderThickness="4">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Ok" Click="OkClicked" HorizontalAlignment="Center"/>
+                <Button Content="Cancel" Click="CancelClicked" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</Window>

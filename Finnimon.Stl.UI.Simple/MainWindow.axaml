@@ -15,14 +15,36 @@
                                 <MenuItem Header="WireframedSolid" x:Name="WireframedSolid" Click="SetRenderMode"/>
                         </MenuItem>
                         <MenuItem Header="_Peer-Mode"/>
+                        <MenuItem Header="_Export">
+                                <MenuItem Header="BINARY" Click="ExportBinary"/>
+                                <MenuItem Header="ASCII" Click="ExportAscii"/>
+                        </MenuItem>
+                        <MenuItem Header="_Color Settings">
+                                <Border>
+                                        <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Background" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                                <ColorPicker x:Name="BackgroundColorPicker" HorizontalAlignment="Right" VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
+                                        </StackPanel>
+                                </Border>
+                                <Border>
+                                        <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Wireframe" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                                <ColorPicker x:Name="WireframeColorPicker" HorizontalAlignment="Right" VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
+                                        </StackPanel>
+                                </Border>
+                                <Border>
+                                        <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Solid" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                                <ColorPicker x:Name="SolidColorPicker" HorizontalAlignment="Right" VerticalAlignment="Center" ColorChanged="ColorSettingsChanged"/>
+                                        </StackPanel>
+                                </Border>
+                        </MenuItem>
                 </Menu>
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="50">
                         <TextBlock x:Name="CentroidBlock"/>
                         <TextBlock x:Name="VolumeBlock"/>
                         <TextBlock x:Name="SurfBlock"/>
                 </StackPanel>
-                <Border DockPanel.Dock="Top">
-                        <ava3D:MeshView Focusable="True" x:Name="MeshView"/>
-                </Border>
+                <ava3D:MeshView Focusable="True" x:Name="MeshView" DockPanel.Dock="Top" AvaloniaBackgroundColor="DarkSlateBlue" AvaloniaSolidColor="Aquamarine" RenderModeFlags="Solid"/>
         </DockPanel>
 </Window>

@@ -4,5 +4,5 @@ namespace Finnimon.Avalonia3D;
 public enum RenderMode
 {
     Solid=1,
-    WireFrame=2<<1
+    Wireframe=2<<1
 }
