@@ -125,6 +125,7 @@ public readonly record struct Vertex3D(
         return angle * sign;
     }
 
+
     #endregion
 
     #endregion
@@ -178,6 +179,18 @@ public readonly record struct Vertex3D(
 
     public static implicit operator Vector3(in Vertex3D vertex) => new(vertex.X, vertex.Y, vertex.Z);
     public static implicit operator Vertex3D(in Vector3 vertex) => new(vertex.X, vertex.Y, vertex.Z);
+
+    #endregion
+
+    #region shuffled around vectors
+
+    public Vertex2D XY => new(X, Y);
+    public Vertex2D YZ => new(Y, Z);
+    public Vertex2D ZX => new(Z, X);
+    public Vertex2D YX => new(Y,X);
+    public Vertex2D ZY => new(Z,Y);
+    public Vertex2D XZ => new(X,Z);
+
 
     #endregion
 

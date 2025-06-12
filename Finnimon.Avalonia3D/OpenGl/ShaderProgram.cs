@@ -1,3 +1,4 @@
+using Finnimon.Math;
 using OpenTK.Mathematics;
 
 namespace Finnimon.Avalonia3D.OpenGl;
@@ -69,4 +70,10 @@ public class ShaderProgram() : IGlObject
     public int GetUniformLocation(string uniformName) => GL.GetUniformLocation(Id,uniformName);
 
     ~ShaderProgram() => Delete();
+
+    public void SetVec3(string name, Vector3 vec)
+    {
+        var location = GetUniformLocation(name);
+        GL.Uniform3(location,vec);
+    }
 }

@@ -32,6 +32,7 @@ public partial class MainWindow : Window
         BackgroundColorPicker.Color = MeshView.AvaloniaBackgroundColor;
         WireframeColorPicker.Color = MeshView.AvaloniaWireframeColor;
         SolidColorPicker.Color = MeshView.AvaloniaSolidColor;
+        MeshView.Camera.UnitUp = Vertex3D.YAxis;
     }
 
     private void UpdateBlocks(Mesh3D mesh)

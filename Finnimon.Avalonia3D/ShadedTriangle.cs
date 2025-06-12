@@ -3,30 +3,29 @@ using Finnimon.Math;
 
 namespace Finnimon.Avalonia3D;
 
-[StructLayout(LayoutKind.Sequential, Pack = 16, Size = 16 * 3)]
+[StructLayout(LayoutKind.Explicit, Size = 12 * 6)]
 public readonly record struct ShadedTriangle(
-    Vertex4D A,
-    Vertex4D B,
-    Vertex4D C
+    [field: FieldOffset(0)] Vertex3D A,
+    [field: FieldOffset(12)] Vertex3D NormalA,
+    [field: FieldOffset(24)] Vertex3D B,
+    [field: FieldOffset(36)] Vertex3D NormalB,
+    [field: FieldOffset(48)] Vertex3D C,
+    [field: FieldOffset(60)] Vertex3D NormalC
 )
 {
-    public static ShadedTriangle FromTriangle(in Triangle3D triangle,in Vertex3D shadeAgainst )
+    public static ShadedTriangle FromTriangle(in Triangle3D triangle)
     {
-        var shade = triangle.Normal * shadeAgainst / 2f + 0.5f;
-        shade = shade * 0.8f + 0.2f;
+        var normal = triangle.Normal;
         return new(
-            new Vertex4D(triangle.A,shade),
-            new Vertex4D(triangle.B,shade),
-            new Vertex4D(triangle.C,shade)
+            triangle.A,normal,triangle.B,normal,triangle.C,normal
             );
     }
 
-    public static ShadedTriangle[] ShadedTriangles(Triangle3D[] triangles, in Vertex3D? shadeAgainst=null)
+    public static ShadedTriangle[] ShadedTriangles(Triangle3D[] triangles)
     {
         var length = triangles.Length;
         var shaded = new ShadedTriangle[length];
-        var shader=shadeAgainst?.Normalize()?? new Vertex3D(1f,4f,15f).Normalize();
-        for (var i = 0; i < length; i++) shaded[i]= FromTriangle(triangles[i],in shader);
+        for (var i = 0; i < length; i++) shaded[i]= FromTriangle(triangles[i]);
         return shaded;
     }
     

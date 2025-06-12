@@ -125,6 +125,7 @@ public class MeshView : BaseTkOpenGlControl
         SolidShader = ShaderProgram.FromFiles("./Shaders/default");
         WireframeShader = ShaderProgram.FromFiles("./Shaders/solidcolor");
         _vao = GL.GenVertexArray();
+        LogGlError();
     }
 
     protected override void OpenTkRender()
@@ -164,15 +165,23 @@ public class MeshView : BaseTkOpenGlControl
         //actual Render Calls
 
         if ((RenderModeFlags & RenderMode.Solid) == RenderMode.Solid) SolidRender(ref model, ref view, ref projection);
-        if ((RenderModeFlags & RenderMode.Wireframe) == RenderMode.Wireframe)
-            WireframeRender(ref model, ref view, ref projection);
-        var err = GL.GetError();
-        if (err != ErrorCode.NoError) Console.WriteLine($"GL Error: {err}");
+        if ((RenderModeFlags & RenderMode.Wireframe) == RenderMode.Wireframe) WireframeRender(ref model, ref view, ref projection);
+        LogGlError();
         //Clean up the opengl state back to how we got it
         GL.Disable(EnableCap.DepthTest);
         GL.BindVertexArray(0);
     }
-    
+
+    private static void LogGlError()
+    {
+        var err = GL.GetError();
+        if (err != ErrorCode.NoError)
+        {
+            Debug.WriteLine($"GL Error: {err}");
+        }
+        
+    }
+
 
     private void SolidRender(ref Matrix4 model, ref Matrix4 view, ref Matrix4 projection)
     {
@@ -195,10 +204,15 @@ public class MeshView : BaseTkOpenGlControl
         WireframeShader.SetMatrix4(nameof(model), ref model);
         WireframeShader.SetMatrix4(nameof(view), ref view);
         WireframeShader.SetMatrix4(nameof(projection), ref projection);
-        GL.LineWidth(2.5f);
+        GL.Enable(EnableCap.PolygonOffsetLine);
+        GL.PolygonOffset(-1f,-1f);
+        GL.LineWidth(2f);
+        GL.DepthMask(false);
         GL.DrawArrays(PrimitiveType.Triangles, 0, Triangles.Length * 3);
+        GL.DepthMask(true);
         // SplitTriangleDrawCall((uint) Triangles.LongLength,(int)GlObjectHelper.ByteSize<ShadedTriangle>());
         GL.LineWidth(1f);
+        GL.Disable(EnableCap.PolygonOffsetLine);
         WireframeShader.Unbind();
         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
     }
@@ -256,15 +270,24 @@ public class MeshView : BaseTkOpenGlControl
     }
 
     private void UpdateShaders()
-    {
+    { 
+        UpdateSolidShaderLight();
         if (_newWireframeColor) UpdateShaderColor(WireframeShader, "uniform_color", in _wireFrameColor);
         if (_newSolidColor) UpdateShaderColor(SolidShader, "shaded_uniform_color", in _solidColor);
     }
 
+    private void UpdateSolidShaderLight()
+    {
+        SolidShader.Bind();
+        var light = Camera.UnitUp.Add(x: 0.1f, y: 0.2f,z:0.3f).Normalize();
+        SolidShader.SetVec3("shade_against", light.ToOpenTk());
+        SolidShader.Unbind();
+    }
+
     private static void UpdateShaderColor(ShaderProgram shader, string name, in Color4 color)
     {
-        var vec4 = new Vector4(color.R, color.G, color.B, color.A);
         shader.Bind();
+        var vec4 = new Vector4(color.R, color.G, color.B, color.A);
         shader.SetVec4(name, vec4);
         shader.Unbind();
     }
@@ -276,28 +299,29 @@ public class MeshView : BaseTkOpenGlControl
         _newMesh = false;
         Triangles = _triangleBuffer;
         GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.BindBuffer(BufferTarget.ArrayBuffer,0);
         if (_vbo != 0) GL.DeleteBuffer(_vbo);
         _vbo = GL.GenBuffer();
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, (int)GlObjectHelper.ByteSize(Triangles), Triangles,
-            BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, (int)GlObjectHelper.ByteSize(Triangles), Triangles, BufferUsageHint.StaticDraw);
 
         var solidShaderLoc = SolidShader.GetAttribLocation("position");
         var wireFrameLoc = WireframeShader.GetAttribLocation("position");
-
         if (solidShaderLoc != wireFrameLoc)
         {
             Console.WriteLine($"Shaders misaligned Solid:{solidShaderLoc} Wireframe:{wireFrameLoc}");
             throw new Exception($"Shaders misaligned Solid:{solidShaderLoc} Wireframe:{wireFrameLoc}");
         }
 
-        var attribLocation = solidShaderLoc;
-
-        GL.VertexAttribPointer(attribLocation, 4, VertexAttribPointerType.Float, false, 0, 0);
-        GL.EnableVertexAttribArray(attribLocation);
-
+        var positionLoc = solidShaderLoc;
+        
+        GL.VertexAttribPointer(positionLoc, 3, VertexAttribPointerType.Float, false, 6*sizeof(float), 0);
+        GL.EnableVertexAttribArray(positionLoc);
+        var normalLoc = SolidShader.GetAttribLocation("normal");
+        GL.VertexAttribPointer(normalLoc,3,VertexAttribPointerType.Float,false, sizeof(float)*6,3*sizeof(float));
+        GL.EnableVertexAttribArray(normalLoc);
+        
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
     }
