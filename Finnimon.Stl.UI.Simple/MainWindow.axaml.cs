@@ -17,13 +17,13 @@ public partial class MainWindow : Window
         set
         {
             _stl = value;
-            var mesh =value?.ToMesh()??new([]);
+            var mesh = value?.ToMesh() ?? Mesh3D.Empty;
             MeshView.Mesh = mesh;
             UpdateBlocks(mesh);
         }
     }
 
-    
+
 
     public MainWindow()
     {
@@ -37,10 +37,12 @@ public partial class MainWindow : Window
 
     private void UpdateBlocks(Mesh3D mesh)
     {
-        var (_, centroid, volume, area) = mesh;
+        var centroid = mesh.Centroid;
+        var volume = mesh.Volume;
+        var area = mesh.Area;
         CentroidBlock.Text = $"Centroid: X{centroid.X:N2} Y{centroid.Y:N2} Z{centroid.Z:N2}";
         VolumeBlock.Text = $"Volume: {volume:N2}";
-        SurfBlock.Text=$"Surface area: {area:N2}";
+        SurfBlock.Text = $"Surface area: {area:N2}";
     }
 
     private static Stl Cube() => StlReader.Read("./Cube_3d_printing_sample.stl");
@@ -74,23 +76,16 @@ public partial class MainWindow : Window
         }
     }
 
-    private static Mesh3D ToMesh(Stl stl)
-    {
-        var triangles = new Triangle3D[stl.Facets.Count];
-        for (var i = 0; i < stl.Facets.Count; i++) triangles[i] = stl.Facets[i].Triangle;
-        return new Mesh3D(triangles);
-    }
-
     private void SetRenderMode(object? sender, RoutedEventArgs e)
     {
-        if(sender is not MenuItem menu) return;
+        if (sender is not MenuItem menu) return;
         e.Handled = true;
-        MeshView.RenderModeFlags=menu.Header switch
+        MeshView.RenderModeFlags = menu.Header switch
         {
-            nameof(Wireframe)=>RenderMode.Wireframe,
-            nameof(Solid)=>RenderMode.Solid,
-            nameof(WireframedSolid)=>RenderMode.Wireframe|RenderMode.Solid,
-            _=>RenderMode.Solid
+            nameof(Wireframe) => RenderMode.Wireframe,
+            nameof(Solid) => RenderMode.Solid,
+            nameof(WireframedSolid) => RenderMode.Wireframe | RenderMode.Solid,
+            _ => RenderMode.Solid
         };
     }
 
@@ -102,8 +97,8 @@ public partial class MainWindow : Window
     private async void ExportCommand(RoutedEventArgs routedEventArgs, StlFileFormat saveFormat)
     {
         routedEventArgs.Handled = true;
-        if(Stl is null) return;
-        
+        if (Stl is null) return;
+
         var topLevel = GetTopLevel(this);
         var storageProvider = topLevel?.StorageProvider ?? throw new PlatformNotSupportedException();
 
@@ -113,12 +108,12 @@ public partial class MainWindow : Window
             SuggestedFileName = "model.stl"
         };
         var fileSaver = await storageProvider.SaveFilePickerAsync(options);
-        if(fileSaver is null) return;
+        if (fileSaver is null) return;
         try
         {
             await fileSaver.DeleteAsync();
             await using var writeStream = await fileSaver.OpenWriteAsync();
-            StlWriter.Write(Stl,writeStream,saveFormat,leaveOpen: true);
+            StlWriter.Write(Stl, writeStream, saveFormat, leaveOpen: true);
         }
         catch (Exception ex)
         {
@@ -128,9 +123,8 @@ public partial class MainWindow : Window
 
     private void ColorSettingsChanged(object? sender, ColorChangedEventArgs e)
     {
-        if(BackgroundColorPicker.Equals(sender)) MeshView.AvaloniaBackgroundColor = e.NewColor;
-        else if(WireframeColorPicker.Equals(sender)) MeshView.AvaloniaWireframeColor = e.NewColor;
-        else if(SolidColorPicker.Equals(sender)) MeshView.AvaloniaSolidColor = e.NewColor;
+        if (BackgroundColorPicker.Equals(sender)) MeshView.AvaloniaBackgroundColor = e.NewColor;
+        else if (WireframeColorPicker.Equals(sender)) MeshView.AvaloniaWireframeColor = e.NewColor;
+        else if (SolidColorPicker.Equals(sender)) MeshView.AvaloniaSolidColor = e.NewColor;
     }
 }
-

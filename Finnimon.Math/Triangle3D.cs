@@ -13,8 +13,8 @@ public readonly record struct Triangle3D(
     public Vertex3D Normal => AbAcCross(A, B, C).Normalize();
     public float Area => AbAcCross(A, B, C).Length / 2;
     public float Circumference => (A - B).Length + (B - C).Length + (C - A).Length;
-    private static Vertex3D AbAcCross(Vertex3D a, Vertex3D b, Vertex3D c) => (b - a) ^ (c - a);
-    
+    private static Vertex3D AbAcCross(in Vertex3D a,in Vertex3D b,in Vertex3D c) => (b - a) ^ (c - a);
+
     public static implicit operator ReadOnlySpan<float>(in Triangle3D triangle)
         => MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.As<Triangle3D, float>(ref Unsafe.AsRef(in triangle)),

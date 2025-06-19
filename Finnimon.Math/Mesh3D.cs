@@ -2,12 +2,22 @@ using System.Formats.Asn1;
 
 namespace Finnimon.Math;
 
-public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Volume,float Area) : IVolume3D
+public sealed record Mesh3D(Triangle3D[] Triangles) : IVolume3D
 {
-    public Mesh3D(Triangle3D[] triangles, MeshCentroidType centroidType = MeshCentroidType.Vertex) : this(triangles,
-        CalculateCentroid(triangles, centroidType), CalculateVolume(triangles),CalculateSurfaceArea(triangles))
-    {
-    }
+    #region lazy properties
+    public Vertex3D Centroid => VertexCentroid;
+    private Vertex3D? _vertexCentroid = null;
+    public Vertex3D VertexCentroid => (_vertexCentroid ??= CalculateCentroid(Triangles, MeshCentroidType.Vertex));
+    private Vertex3D? _areaCentroid = null;
+    public Vertex3D AreaCentroid => (_areaCentroid ??= CalculateCentroid(Triangles, MeshCentroidType.Area));
+    private Vertex3D? _volumeCentroid = null;
+    public Vertex3D VolumeCentroid => (_volumeCentroid ??= CalculateCentroid(Triangles, MeshCentroidType.Volume));
+    private float _area = float.NaN;
+    public float Area => (_area = _area is not float.NaN ? _area : CalculateSurfaceArea(Triangles));
+    private float _volume = float.NaN;
+    public float Volume => (_volume = _volume is not float.NaN ? _volume : CalculateVolume(Triangles));
+    #endregion
+
 
     #region Calculations
     public static float CalculateSurfaceArea(Triangle3D[] triangles)
@@ -54,8 +64,11 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
     private static Vertex3D CalculateAreaCentroid(IEnumerable<Triangle3D> triangles)
         => triangles
             .AsParallel()
-            .Select(x => (x.Area, x.Centroid))
-            .Select((float Area, Vertex3D Centroid) (x) => (x.Area, x.Centroid * x.Area))
+            .Select((float Area, Vertex3D Centroid) (tri) =>
+            {
+                var area = tri.Area;
+                return (area, tri.Centroid * area);
+            })
             .Aggregate(
                 (float Area, Vertex3D Centroid) () => (0, Vertex3D.Zero),
                 (accum, source) => (accum.Area + source.Area, accum.Centroid + source.Centroid),
@@ -66,18 +79,17 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
     private static Vertex3D CalculateVolumeCentroid(IEnumerable<Triangle3D> triangles)
         => triangles
             .AsParallel()
-            .Select((Vertex3D Centroid, float Volume) (x) => ((x.A + x.B + x.C) / 4, SignedTetrahedronVolume(x)))
+            .Select((Vertex3D Centroid, float Volume) (tri) => ((tri.A + tri.B + tri.C), SignedSixTetrahedronVolume(tri)))
             .Select((float Volume, Vertex3D Centroid) (x) => (x.Volume, x.Centroid * x.Volume))
             .Aggregate(
                 (float Volume, Vertex3D Centroid) () => (0, Vertex3D.Zero),
                 (aggregate, position) => (aggregate.Volume + position.Volume, aggregate.Centroid + position.Centroid),
-                (subtotal1, subtotal2) =>
-                    (subtotal1.Volume + subtotal2.Volume, subtotal1.Centroid + subtotal2.Centroid),
-                total => total.Centroid / total.Volume
+                (subtotal1, subtotal2) => (subtotal1.Volume + subtotal2.Volume, subtotal1.Centroid + subtotal2.Centroid),
+                total => total.Centroid / total.Volume * 0.25f
             );
 
     public static float CalculateVolumeParallel(IEnumerable<Triangle3D> triangles)
-        => float.Abs(triangles.AsParallel().Sum(x => SignedTetrahedronVolume(in x)));
+        => float.Abs(triangles.AsParallel().Sum(x => SignedSixTetrahedronVolume(in x))) / 6;
 
     #endregion
 
@@ -86,8 +98,8 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
     public static float CalculateVolumeSequential(Triangle3D[] triangles)
     {
         var volume = 0f;
-        for (var i = 0; i < triangles.Length; i++) volume += SignedTetrahedronVolume(in triangles[i]);
-        return float.Abs(volume);
+        for (var i = 0; i < triangles.Length; i++) volume += SignedSixTetrahedronVolume(in triangles[i]);
+        return float.Abs(volume / 6);
     }
 
     public static float CalculateSurfaceAreaSequential(Triangle3D[] triangles)
@@ -113,14 +125,12 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
         var volume = 0f;
         for (var i = 0; i < triangles.Length; i++)
         {
-            var curVolume = SignedTetrahedronVolume(triangles[i]);
-            var curCentroid = (triangles[i].A + triangles[i].B + triangles[i].C) / 4;
-
+            var triangle = triangles[i];
+            var curVolume = SignedSixTetrahedronVolume(in triangle);
             volume += curVolume;
-            centroid += curCentroid * curVolume;
+            centroid += (triangle.A + triangle.B + triangle.C) * curVolume;
         }
-
-        return centroid / volume;
+        return centroid / volume * 0.25f;
     }
 
     private static Vertex3D CalculateAreaCentroidSeq(Triangle3D[] triangles)
@@ -129,12 +139,11 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
         var area = 0f;
         for (var i = 0; i < triangles.Length; i++)
         {
-            var curArea = triangles[i].Area;
-            var curCentroid = triangles[i].Centroid;
+            var triangle = triangles[i];
+            var curArea = triangle.Area;
             area += curArea;
-            centroid += curCentroid * curArea;
+            centroid += triangle.Centroid * curArea;
         }
-
         return centroid / area;
     }
 
@@ -148,25 +157,25 @@ public sealed record Mesh3D(Triangle3D[] Triangles, Vertex3D Centroid, float Vol
 
     #endregion
 
-    private static float SignedTetrahedronVolume(Triangle3D baseTriangle)
-    {
-        const float sixth = 1f / 6f;
-        var (a, b, c) = baseTriangle;
-        return sixth * (a * (b ^ c));
-    }
 
-    private static float SignedTetrahedronVolume(in Triangle3D baseTriangle)
-    {
-        const float sixth = 1f / 6f;
-        var (a, b, c) = baseTriangle;
-        return sixth * (a * (b ^ c));
-    }
+    private static float SignedSixTetrahedronVolume(in Triangle3D baseTriangle)
+    => baseTriangle.A * (baseTriangle.B ^ baseTriangle.C);
+
 
     #endregion
 
     #region pseudo constants
 
-    public static Mesh3D Empty { get; } = new([], Vertex3D.Zero, 0, 0);
-
+    public static Mesh3D Empty { get; } = EmptyMesh();
+    private static Mesh3D EmptyMesh()
+    {
+        Mesh3D mesh = new([]);
+        mesh._area = 0;
+        mesh._volume = 0;
+        mesh._vertexCentroid = Vertex3D.Zero;
+        mesh._areaCentroid = Vertex3D.Zero;
+        mesh._volumeCentroid = Vertex3D.Zero;
+        return mesh;
+    }
     #endregion
 }

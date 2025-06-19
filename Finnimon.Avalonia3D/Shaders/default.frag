@@ -9,6 +9,6 @@ void main()
 {
     float shade = dot(fragNormal, shade_against);
     shade=shade*0.5+1;
-    shade=shade*0.75+0.25;
+    shade=shade*0.9+0.1;
     FragColor = vec4(shaded_uniform_color.xyz*shade, shaded_uniform_color.w);
 }
