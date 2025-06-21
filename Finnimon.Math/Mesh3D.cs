@@ -1,21 +1,145 @@
-using System.Formats.Asn1;
-
 namespace Finnimon.Math;
 
 public sealed record Mesh3D(Triangle3D[] Triangles) : IVolume3D
 {
     #region lazy properties
     public Vertex3D Centroid => VertexCentroid;
-    private Vertex3D? _vertexCentroid = null;
-    public Vertex3D VertexCentroid => (_vertexCentroid ??= CalculateCentroid(Triangles, MeshCentroidType.Vertex));
-    private Vertex3D? _areaCentroid = null;
-    public Vertex3D AreaCentroid => (_areaCentroid ??= CalculateCentroid(Triangles, MeshCentroidType.Area));
-    private Vertex3D? _volumeCentroid = null;
-    public Vertex3D VolumeCentroid => (_volumeCentroid ??= CalculateCentroid(Triangles, MeshCentroidType.Volume));
+    private Vertex3D _vertexCentroid = Vertex3D.NaN;
+    public Vertex3D VertexCentroid => (_vertexCentroid = _vertexCentroid != Vertex3D.NaN ? _vertexCentroid : CalculateCentroid(Triangles, MeshCentroidType.Vertex));
+    private Vertex3D _areaCentroid = Vertex3D.NaN;
+    public Vertex3D AreaCentroid => (_areaCentroid = _areaCentroid != Vertex3D.NaN ? _areaCentroid : CalculateCentroid(Triangles, MeshCentroidType.Area));
+    private Vertex3D _volumeCentroid = Vertex3D.NaN;
+    public Vertex3D VolumeCentroid => (_volumeCentroid = _volumeCentroid != Vertex3D.NaN ? _volumeCentroid : CalculateCentroid(Triangles, MeshCentroidType.Volume));
     private float _area = float.NaN;
     public float Area => (_area = _area is not float.NaN ? _area : CalculateSurfaceArea(Triangles));
     private float _volume = float.NaN;
     public float Volume => (_volume = _volume is not float.NaN ? _volume : CalculateVolume(Triangles));
+    #endregion
+    #region init fully
+
+    public async Task InitializeLaziesAsync()
+    => await Task.Run(InitializeLazies);
+
+    private class InitAccum(
+        Vertex3D vertexCentroid,
+        Vertex3D areaCentroid,
+        Vertex3D volumeCentroid,
+        float volume,
+        float area)
+    {
+        public Vertex3D VertexCentroid = vertexCentroid;
+        public Vertex3D AreaCentroid = areaCentroid;
+        public Vertex3D VolumeCentroid = volumeCentroid;
+        public float Volume = volume;
+        public float Area = area;
+
+        public static InitAccum Combine(InitAccum subtotal1, InitAccum subtotal2)
+        {
+            subtotal1.VertexCentroid += subtotal2.VertexCentroid;
+            subtotal1.AreaCentroid += subtotal2.AreaCentroid;
+            subtotal1.VolumeCentroid += subtotal2.VolumeCentroid;
+            subtotal1.Volume += subtotal2.Volume;
+            subtotal1.Area += subtotal2.Area;
+            return subtotal1;
+        }
+
+        public static InitAccum Total(InitAccum total, long triangleCount)
+        => new(
+            total.VertexCentroid / 3 / triangleCount,
+            total.AreaCentroid / 3 / total.Area,
+            total.VolumeCentroid / 4 / total.Volume,
+            total.Volume / 6,
+            total.Area
+        );
+        public void Deconstruct(
+            out Vertex3D vertexCentroid,
+            out Vertex3D areaCentroid,
+            out Vertex3D volumeCentroid,
+            out float volume,
+            out float area
+            )
+        {
+            vertexCentroid = VertexCentroid;
+            areaCentroid = AreaCentroid;
+            volumeCentroid = VolumeCentroid;
+            volume = Volume;
+            area = Area;
+        }
+    }
+
+    public void InitializeLazies()
+    {
+        var triangles = Triangles;
+        Vertex3D vertexCentroid = Vertex3D.Zero;
+        Vertex3D areaCentroid = Vertex3D.Zero;
+        Vertex3D volumeCentroid = Vertex3D.Zero;
+        float volume = 0;
+        float area = 0;
+        for (long i = 0; i < triangles.LongLength; i++)
+        {
+            ref var tri = ref triangles[i];
+            var (a, b, c) = tri;
+            var cornerAvg = a + b + c;
+            var curArea = tri.Area;
+            var curVolume = SignedSixTetrahedronVolume(in tri);
+            vertexCentroid += cornerAvg;
+            areaCentroid += cornerAvg * curArea;
+            volumeCentroid += cornerAvg * curVolume;
+            volume += curVolume;
+            area += curArea;
+
+        }
+        _vertexCentroid = vertexCentroid / 3 / triangles.LongLength;
+        _areaCentroid = areaCentroid / 3 / area;
+        _volumeCentroid = volumeCentroid / 4 / volume;
+        _volume = volume / 6;
+        _area = area;
+    }
+
+    public async Task InitializeLaziesParallel()
+    {
+        var coreCount = SystemInfo.ProcessorCount;
+        var chunks = new (long start, long length)[coreCount];
+        var chunkSize = Triangles.Length / coreCount;
+        for (int core = 0; core < coreCount - 1; core++)
+            chunks[core] = (core * chunkSize, chunkSize);
+        var lastChunkOffset = chunkSize * (coreCount - 1);
+        var lastChunkSize = Triangles.Length - lastChunkOffset;
+        chunks[coreCount - 1] = (lastChunkOffset, lastChunkSize);
+        var tasks = new Task<InitAccum>[coreCount];
+        for (int core = 0; core < coreCount; core++)
+        {
+            var chunk = chunks[core];
+            tasks[core] = Task.Run(() => HandleChunk(chunk.start, chunk.length, Triangles));
+        }
+        await Task.WhenAll(tasks);
+        var result = tasks.Select(x => x.Result).Aggregate(InitAccum.Combine);
+        (_vertexCentroid, _areaCentroid, _volumeCentroid, _volume, _area) = InitAccum.Total(result, Triangles.LongLength);
+    }
+    private static InitAccum HandleChunk(long start, long length, Triangle3D[] triangles)
+    {
+        Vertex3D vertexCentroid = Vertex3D.Zero;
+        Vertex3D areaCentroid = Vertex3D.Zero;
+        Vertex3D volumeCentroid = Vertex3D.Zero;
+        float volume = 0;
+        float area = 0;
+        for (long i = start; i < start + length; i++)
+        {
+            ref var tri = ref triangles[i];
+            var (a, b, c) = tri;
+            var cornerAvg = a + b + c;
+            var curArea = tri.Area;
+            var curVolume = SignedSixTetrahedronVolume(in tri);
+            vertexCentroid += cornerAvg;
+            areaCentroid += cornerAvg * curArea;
+            volumeCentroid += cornerAvg * curVolume;
+            volume += curVolume;
+            area += curArea;
+        }
+        return new(vertexCentroid, areaCentroid, volumeCentroid, volume, area);
+    }
+
+
     #endregion
 
 

@@ -1,6 +1,5 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 
-using Finnimon.Math;
 using Finnimon.Stl;
 using Finnimon.Stl.Cli;
 
@@ -11,7 +10,7 @@ if (args is not { Length: > 0 } || helpFlags.Contains(args[0]))
                       Usage: stlcli <stlfilepath> [targetpath] [writemode]");
                       [targetpath] - Use optional targetpath if you want to export the stl elsewhere.");
                       [writemode]  - Use optional writemode if you want to export the stl in a specific mode.
-                                     Defaults to 'binary' but may be set to 'ascii' 
+                                     Defaults to 'binary' but may be set to 'ascii'
                       """);
     return 0;
 }
@@ -24,10 +23,11 @@ if (!File.Exists(stlFile))
     return 2;
 }
 
+Console.WriteLine($"Starting read of stl {stlFile}");
 Stl stl;
 try
 {
-    stl = StlReader.Read(File.OpenRead(stlFile));
+    stl = StlReader.Read(stlFile);
 }
 catch
 {
@@ -35,31 +35,35 @@ catch
     return 3;
 }
 
-Console.WriteLine($"Successfully read {stlFile} in {timer.FormattedTimeSinceLastCall()}.");
+Console.WriteLine($"Read {stlFile} in {timer.FormattedTimeSinceLastCall()}.");
 
-_ = stl ?? throw new Exception();
-var mesh = new Mesh3D(stl.Facets.Select(facet => facet.Triangle).ToArray());
+_ = stl ?? throw new NullReferenceException(nameof(stl));
+var mesh = stl.ToMesh();
 
+Console.WriteLine($"Converted stl to math mesh in {timer.FormattedTimeSinceLastCall()}.");
+
+mesh.InitializeLazies();
 var infoMessage =
     $"""
      Stl Info:
         Name          =  {stl.Name ?? ""}
         Header        =  {stl.Header}
         Facet Count   =  {stl.Facets.Count}
-        Surface Area  =  {Mesh3D.CalculateSurfaceArea(mesh.Triangles):F2}
+        Surface Area  =  {mesh.Area:F2}
         Volume        =  {mesh.Volume:F2}
-        Centroids:    
-             Vertex   =  {Mesh3D.CalculateCentroid(mesh.Triangles, MeshCentroidType.Vertex).Pretty()}
-             Area     =  {Mesh3D.CalculateCentroid(mesh.Triangles, MeshCentroidType.Area).Pretty()}
-             Volume   =  {Mesh3D.CalculateCentroid(mesh.Triangles, MeshCentroidType.Volume).Pretty()}
+        Centroids:
+             Vertex   =  {mesh.VertexCentroid.Pretty()}
+             Area     =  {mesh.AreaCentroid.Pretty()}
+             Volume   =  {mesh.VolumeCentroid.Pretty()}
 
      Successfully evaluated in {timer.FormattedTimeSinceLastCall()}.
      """;
 Console.WriteLine(infoMessage);
+
 if (args.Length == 1) return 0;
 
 var writePath = args[1];
-var writeModeArg = args.Length == 3 ? args[2] : null;
+var writeModeArg = args.Length >= 3 ? args[2] : "binary";
 
 var writeMode = writeModeArg switch
 {

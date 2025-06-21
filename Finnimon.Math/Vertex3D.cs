@@ -18,7 +18,7 @@ public readonly record struct Vertex3D(
     public float Length => float.Sqrt(SquaredLength);
     public float SquaredLength => X * X + Y * Y + Z * Z;
     public static Vertex3D Zero => new();
-
+    public static Vertex3D NaN => new(float.NaN, float.NaN, float.NaN);
     #endregion
 
     #region operators
@@ -187,9 +187,9 @@ public readonly record struct Vertex3D(
     public Vertex2D XY => new(X, Y);
     public Vertex2D YZ => new(Y, Z);
     public Vertex2D ZX => new(Z, X);
-    public Vertex2D YX => new(Y,X);
-    public Vertex2D ZY => new(Z,Y);
-    public Vertex2D XZ => new(X,Z);
+    public Vertex2D YX => new(Y, X);
+    public Vertex2D ZY => new(Z, Y);
+    public Vertex2D XZ => new(X, Z);
 
 
     #endregion
