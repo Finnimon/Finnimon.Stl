@@ -35,10 +35,19 @@ public static class StlReader
         var header = new string(binary.ReadChars(80));
         var triangleCount = binary.ReadUInt32();
         var triangles = new StlFacet[triangleCount];
-        for (uint i = 0; i < triangleCount; i++) triangles[i] = binary.ReadBinaryFacet();
+        var buffer = new byte[Stride];
+        for (uint i = 0; i < triangleCount; i++) triangles[i] = stream.ReadBinaryFacetFast(buffer);
         return new Stl(null, header, triangles);
     }
-
+    
+    private const int Stride=50;
+    private static unsafe StlFacet ReadBinaryFacetFast(this Stream stream, byte[] buffer){
+        var readCount = stream.Read(buffer);
+        if(readCount != Stride) throw new Exception("read of binary facet failed");
+        const int normalSkip=12;
+        fixed(byte* bufPtr= &buffer[normalSkip]) return ((StlFacet*)bufPtr)[0];
+    }
+    
     private static StlFacet ReadBinaryFacet(this BinaryReader binary)
     {
         binary.Skip(sizeof(float)*3);
