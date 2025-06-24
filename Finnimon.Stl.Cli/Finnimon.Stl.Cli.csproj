@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Finnimon.Stl\Finnimon.Stl.csproj" />
+    <ProjectReference Include="..\Finnimon.Stl.UI.Simple\Finnimon.Stl.UI.Simple.csproj" />
   </ItemGroup>
 
   <ItemGroup>

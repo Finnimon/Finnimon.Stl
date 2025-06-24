@@ -1,8 +1,10 @@
+using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Finnimon.Avalonia3D;
 using Finnimon.Math;
+
 
 namespace Finnimon.Stl.UI.Simple;
 
@@ -23,12 +25,13 @@ public partial class MainWindow : Window
         }
     }
 
+    public MainWindow() : this(null){}
 
-
-    public MainWindow()
+    public MainWindow(string[]? args)
     {
         InitializeComponent();
-        Stl = Cube();
+        Stl = args is {Length:>0}?StlReader.Read(args[0]):Cube();
+
         BackgroundColorPicker.Color = MeshView.AvaloniaBackgroundColor;
         WireframeColorPicker.Color = MeshView.AvaloniaWireframeColor;
         SolidColorPicker.Color = MeshView.AvaloniaSolidColor;
@@ -45,7 +48,12 @@ public partial class MainWindow : Window
         SurfBlock.Text = $"Surface area: {area:N2}";
     }
 
-    private static Stl Cube() => StlReader.Read("./Cube_3d_printing_sample.stl");
+    private static Stl Cube()
+    {
+        var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        const string cubeFileName="Cube_3d_printing_sample.stl";
+        return StlReader.Read($"{directory}/{cubeFileName}");
+    }
 
     public async void LoadStl(object? sender, RoutedEventArgs e)
     {

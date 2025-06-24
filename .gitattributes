@@ -1,11 +1,14 @@
 Finnimon.Stl.Test/Files/ascii-cube.stl filter=lfs diff=lfs merge=lfs -text
 Finnimon.Stl.Test/Files/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
 Finnimon.Stl.UI.Simple/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
-Finnimon.Stl.Benchmark/bin/Release/net8.0/Files/big.stl filter=lfs diff=lfs merge=lfs -text
 Finnimon.Stl.Benchmark/Files/big.stl filter=lfs diff=lfs merge=lfs -text
-Finnimon.Stl.Test/bin/Release/net8.0/Files/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
-Finnimon.Stl.UI.Simple/bin/Release/net8.0/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
 Finnimon.Stl.Test/bin/Debug/net8.0/Files/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
+Finnimon.Stl.Benchmark/bin/Debug/net8.0/Files/big.stl filter=lfs diff=lfs merge=lfs -text
+Finnimon.Stl.Benchmark/bin/Release/net8.0/Files/big.stl filter=lfs diff=lfs merge=lfs -text
+Finnimon.Stl.Cli/bin/Release/net8.0/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
 Finnimon.Stl.Test/bin/Release/net8.0/Files/ascii-cube.stl filter=lfs diff=lfs merge=lfs -text
+Finnimon.Stl.Test/bin/Release/net8.0/Files/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
 Finnimon.Stl.UI.Simple/bin/Debug/net8.0/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
+Finnimon.Stl.UI.Simple/bin/Release/net8.0/Cube_3d_printing_sample.stl filter=lfs diff=lfs merge=lfs -text
+Finnimon.Stl.Test/bin/Debug/net8.0/Files/ascii-cube.stl filter=lfs diff=lfs merge=lfs -text
 *.stl filter=lfs diff=lfs merge=lfs -text

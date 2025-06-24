@@ -1,5 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finnimon.Math", "Finnimon.Math\Finnimon.Math.csproj", "{EFF18FFA-6FEA-4186-849E-EEB9D8AF0ADC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finnimon.Stl", "Finnimon.Stl\Finnimon.Stl.csproj", "{22592F7C-156F-43A0-8FA7-796717D5E366}"
@@ -19,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finnimon.Stl.Benchmark", "Finnimon.Stl.Benchmark\Finnimon.Stl.Benchmark.csproj", "{36A82CCE-7B83-4207-9AB4-AABB19106EF0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finnimon.Extensions", "Finnimon.Extensions\Finnimon.Extensions.csproj", "{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finnimon.Stl.Slicer", "Finnimon.Stl.Slicer\Finnimon.Stl.Slicer.csproj", "{6B80E6B3-0153-44B6-B249-560E5C421B51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,5 +69,9 @@ Global
 		{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AE4BA15-3DCC-4DEE-AE6B-E5301608F347}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B80E6B3-0153-44B6-B249-560E5C421B51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B80E6B3-0153-44B6-B249-560E5C421B51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B80E6B3-0153-44B6-B249-560E5C421B51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B80E6B3-0153-44B6-B249-560E5C421B51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
