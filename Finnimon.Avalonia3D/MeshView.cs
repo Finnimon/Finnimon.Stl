@@ -105,7 +105,6 @@ public class MeshView : BaseTkOpenGlControl
 
     public MeshView(Mesh3D mesh)
     {
-        Console.WriteLine("MeshView.ctor");
         Camera = new OrbitCamera(float.Pi / 4, Vertex3D.Zero, 1, 0, 0);
         Triangles = [];
         RenderModeFlags = RenderMode.Solid | RenderMode.Wireframe;
@@ -114,7 +113,6 @@ public class MeshView : BaseTkOpenGlControl
         WireframeColor = Color4.White;
         BackgroundColor = Color4.DarkViolet;
         Mesh = mesh;
-        Console.WriteLine("MeshView.ctor");
     }
 
     public void ClearMesh() => Mesh = Mesh3D.Empty;
@@ -122,14 +120,12 @@ public class MeshView : BaseTkOpenGlControl
 
     protected override void OpenTkInit()
     {
-        Console.WriteLine(nameof(OpenTkInit));
         _frameTimer.Restart();
         GL.ClearColor(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A);
         SolidShader = ShaderProgram.FromFiles("./Shaders/default");
         WireframeShader = ShaderProgram.FromFiles("./Shaders/solidcolor");
         _vao = GL.GenVertexArray();
         LogGlError();
-        Console.WriteLine(nameof(OpenTkInit));
     }
 
     protected override void OpenTkRender()

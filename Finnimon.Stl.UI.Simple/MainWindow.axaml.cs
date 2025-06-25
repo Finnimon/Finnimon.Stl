@@ -29,16 +29,12 @@ public partial class MainWindow : Window
 
     public MainWindow(string[]? args)
     {
-        Console.WriteLine("MainWindow ctor");
         InitializeComponent();
         Stl = args is { Length: > 0 } ? StlReader.Read(args[0]) : Cube();
-
         BackgroundColorPicker.Color = MeshView.AvaloniaBackgroundColor;
         WireframeColorPicker.Color = MeshView.AvaloniaWireframeColor;
         SolidColorPicker.Color = MeshView.AvaloniaSolidColor;
         MeshView.Camera.UnitUp = Vertex3D.YAxis;
-        Console.WriteLine("MainWindow ctor");
-
     }
 
     private void UpdateBlocks(Mesh3D mesh)
