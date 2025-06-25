@@ -25,17 +25,20 @@ public partial class MainWindow : Window
         }
     }
 
-    public MainWindow() : this(null){}
+    public MainWindow() : this(null) { }
 
     public MainWindow(string[]? args)
     {
+        Console.WriteLine("MainWindow ctor");
         InitializeComponent();
-        Stl = args is {Length:>0}?StlReader.Read(args[0]):Cube();
+        Stl = args is { Length: > 0 } ? StlReader.Read(args[0]) : Cube();
 
         BackgroundColorPicker.Color = MeshView.AvaloniaBackgroundColor;
         WireframeColorPicker.Color = MeshView.AvaloniaWireframeColor;
         SolidColorPicker.Color = MeshView.AvaloniaSolidColor;
         MeshView.Camera.UnitUp = Vertex3D.YAxis;
+        Console.WriteLine("MainWindow ctor");
+
     }
 
     private void UpdateBlocks(Mesh3D mesh)
@@ -51,7 +54,7 @@ public partial class MainWindow : Window
     private static Stl Cube()
     {
         var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        const string cubeFileName="Cube_3d_printing_sample.stl";
+        const string cubeFileName = "Cube_3d_printing_sample.stl";
         return StlReader.Read($"{directory}/{cubeFileName}");
     }
 

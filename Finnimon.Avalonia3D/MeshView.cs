@@ -26,29 +26,29 @@ public class MeshView : BaseTkOpenGlControl
             _newMesh = true;
             Camera.LookAt(Mesh.Centroid);
             if (Mesh.Triangles.Length <= 0) return;
-            Camera.Distance=Mesh.Triangles[0].A.Distance(Mesh.Centroid)*2;
+            Camera.Distance = Mesh.Triangles[0].A.Distance(Mesh.Centroid) * 2;
         }
     }
 
     public Color AvaloniaBackgroundColor
     {
-        get => new (
+        get => new(
             (byte)(byte.MaxValue * BackgroundColor.A),
             (byte)(byte.MaxValue * BackgroundColor.R),
             (byte)(byte.MaxValue * BackgroundColor.G),
             (byte)(byte.MaxValue * BackgroundColor.B));
-        set => BackgroundColor=new(value.R,value.G,value.B,value.A);
+        set => BackgroundColor = new(value.R, value.G, value.B, value.A);
     }
     public Color4 BackgroundColor { get; set; }
 
     public Color AvaloniaSolidColor
     {
-        get => new (
+        get => new(
             (byte)(byte.MaxValue * SolidColor.A),
             (byte)(byte.MaxValue * SolidColor.R),
             (byte)(byte.MaxValue * SolidColor.G),
             (byte)(byte.MaxValue * SolidColor.B));
-        set => SolidColor=new(value.R,value.G,value.B,value.A);
+        set => SolidColor = new(value.R, value.G, value.B, value.A);
     }
     public Color4 SolidColor
     {
@@ -61,12 +61,12 @@ public class MeshView : BaseTkOpenGlControl
     }
     public Color AvaloniaWireframeColor
     {
-        get => new (
+        get => new(
             (byte)(byte.MaxValue * WireframeColor.A),
             (byte)(byte.MaxValue * WireframeColor.R),
             (byte)(byte.MaxValue * WireframeColor.G),
             (byte)(byte.MaxValue * WireframeColor.B));
-        set => WireframeColor=new(value.R,value.G,value.B,value.A);
+        set => WireframeColor = new(value.R, value.G, value.B, value.A);
     }
     public Color4 WireframeColor
     {
@@ -105,6 +105,7 @@ public class MeshView : BaseTkOpenGlControl
 
     public MeshView(Mesh3D mesh)
     {
+        Console.WriteLine("MeshView.ctor");
         Camera = new OrbitCamera(float.Pi / 4, Vertex3D.Zero, 1, 0, 0);
         Triangles = [];
         RenderModeFlags = RenderMode.Solid | RenderMode.Wireframe;
@@ -113,6 +114,7 @@ public class MeshView : BaseTkOpenGlControl
         WireframeColor = Color4.White;
         BackgroundColor = Color4.DarkViolet;
         Mesh = mesh;
+        Console.WriteLine("MeshView.ctor");
     }
 
     public void ClearMesh() => Mesh = Mesh3D.Empty;
@@ -120,12 +122,14 @@ public class MeshView : BaseTkOpenGlControl
 
     protected override void OpenTkInit()
     {
+        Console.WriteLine(nameof(OpenTkInit));
         _frameTimer.Restart();
         GL.ClearColor(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A);
         SolidShader = ShaderProgram.FromFiles("./Shaders/default");
         WireframeShader = ShaderProgram.FromFiles("./Shaders/solidcolor");
         _vao = GL.GenVertexArray();
         LogGlError();
+        Console.WriteLine(nameof(OpenTkInit));
     }
 
     protected override void OpenTkRender()
@@ -143,13 +147,15 @@ public class MeshView : BaseTkOpenGlControl
         GL.BindVertexArray(0);
         GL.DeleteVertexArray(_vao);
         SolidShader?.Unbind();
+        SolidShader?.Delete();
         SolidShader = null;
         WireframeShader?.Unbind();
+        WireframeShader?.Delete();
         WireframeShader = null;
     }
 
     #region do render
-    
+
     private void DoCsysRender()
     {
     }
@@ -179,7 +185,7 @@ public class MeshView : BaseTkOpenGlControl
         {
             Debug.WriteLine($"GL Error: {err}");
         }
-        
+
     }
 
 
@@ -205,7 +211,7 @@ public class MeshView : BaseTkOpenGlControl
         WireframeShader.SetMatrix4(nameof(view), ref view);
         WireframeShader.SetMatrix4(nameof(projection), ref projection);
         GL.Enable(EnableCap.PolygonOffsetLine);
-        GL.PolygonOffset(-1f,-1f);
+        GL.PolygonOffset(-1f, -1f);
         GL.LineWidth(2f);
         GL.DepthMask(false);
         GL.DrawArrays(PrimitiveType.Triangles, 0, Triangles.Length * 3);
@@ -270,7 +276,7 @@ public class MeshView : BaseTkOpenGlControl
     }
 
     private void UpdateShaders()
-    { 
+    {
         UpdateSolidShaderLight();
         if (_newWireframeColor) UpdateShaderColor(WireframeShader, "uniform_color", in _wireFrameColor);
         if (_newSolidColor) UpdateShaderColor(SolidShader, "shaded_uniform_color", in _solidColor);
@@ -279,7 +285,7 @@ public class MeshView : BaseTkOpenGlControl
     private void UpdateSolidShaderLight()
     {
         SolidShader.Bind();
-        var light = Camera.UnitUp.Add(x: 0.1f, y: 0.2f,z:0.3f).Normalize();
+        var light = Camera.UnitUp.Add(x: 0.1f, y: 0.2f, z: 0.3f).Normalize();
         SolidShader.SetVec3("shade_against", light.ToOpenTk());
         SolidShader.Unbind();
     }
@@ -299,7 +305,7 @@ public class MeshView : BaseTkOpenGlControl
         _newMesh = false;
         Triangles = _triangleBuffer;
         GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer,0);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         if (_vbo != 0) GL.DeleteBuffer(_vbo);
         _vbo = GL.GenBuffer();
 
@@ -315,13 +321,13 @@ public class MeshView : BaseTkOpenGlControl
         }
 
         var positionLoc = solidShaderLoc;
-        
-        GL.VertexAttribPointer(positionLoc, 3, VertexAttribPointerType.Float, false, 6*sizeof(float), 0);
+
+        GL.VertexAttribPointer(positionLoc, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
         GL.EnableVertexAttribArray(positionLoc);
         var normalLoc = SolidShader.GetAttribLocation("normal");
-        GL.VertexAttribPointer(normalLoc,3,VertexAttribPointerType.Float,false, sizeof(float)*6,3*sizeof(float));
+        GL.VertexAttribPointer(normalLoc, 3, VertexAttribPointerType.Float, false, sizeof(float) * 6, 3 * sizeof(float));
         GL.EnableVertexAttribArray(normalLoc);
-        
+
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
     }

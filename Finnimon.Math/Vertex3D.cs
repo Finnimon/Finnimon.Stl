@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static System.Math;
 
 namespace Finnimon.Math;
 
@@ -121,7 +120,7 @@ public readonly record struct Vertex3D(
         var cross = v1 ^ v2;
         var dot = v1 * v2;
         var angle = float.Acos(float.Clamp(dot, -1f, 1f));
-        var sign = Sign(normalAxis * cross);
+        var sign = float.Sign(normalAxis * cross);
         return angle * sign;
     }
 
