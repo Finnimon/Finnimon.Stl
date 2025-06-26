@@ -22,9 +22,10 @@ public class StlProcessCommand : AsyncCommand<StlProcessSettings>
         {
             stl = StlReader.Read(settings.StlPath);
         }
-        catch
+        catch (Exception ex)
         {
             AnsiConsole.MarkupLine($"[red]Failed to read STL file:[/] {settings.StlPath}");
+            AnsiConsole.WriteLine(ex.ToString());
             return 3;
         }
 

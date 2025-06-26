@@ -1,6 +1,6 @@
-using System.ComponentModel;
 using System.Globalization;
 using System.Text;
+
 using Finnimon.Math;
 
 namespace Finnimon.Stl;
@@ -24,18 +24,30 @@ public static class StlReader
         finally
         {
             if (!leaveOpen) stream.Dispose();
-            Console.WriteLine($"Stream={stream.CanRead}");
         }
     }
 
     #region binary stl
-
-    private static Stl ReadBinary(Stream stream)
+    private const uint MaxMemorySize = 1_300_000_000;
+    private const int BinaryStlHeaderLength = 84;
+    private static unsafe Stl ReadBinary(Stream stream)
     {
-        using var binary = new BinaryReader(stream, Encoding.UTF8, true);
-        var header = new string(binary.ReadChars(80));
-        var triangleCount = binary.ReadUInt32();
+        var remaining = stream.Length - stream.Position;
+        if (remaining < BinaryStlHeaderLength)
+            throw new FormatException($"Stl stream is too short.\r\nMinimum Length={BinaryStlHeaderLength}. \r\nRemaining Length={remaining}.");
 
+        var headerBuffer = new byte[BinaryStlHeaderLength];
+        stream.ReadExactly(headerBuffer, 0, BinaryStlHeaderLength);
+        var header = Encoding.ASCII.GetString(headerBuffer, 0, 80);
+        var triangleCount = BitConverter.ToUInt32(headerBuffer, 80);
+        var remainingBodyBytes = stream.Length - stream.Position;
+        var expectedBodyBytes = triangleCount * Stride;
+        if (expectedBodyBytes < remainingBodyBytes)
+            throw new FormatException($"Stl stream body is too short.\r\nExpected Length={expectedBodyBytes}. \r\nRemaining Length={remainingBodyBytes}.");
+
+        var inMemoryByteSize = sizeof(StlFacet) * triangleCount;
+        if (inMemoryByteSize >= MaxMemorySize)
+            throw new Exception($"Stl could not be read.\n{triangleCount} triangles is too large for the runtime.");
         var triangles = new StlFacet[triangleCount];
         var buffer = new byte[Stride];
         for (uint i = 0; i < triangleCount; i++) triangles[i] = stream.ReadBinaryFacetFast(buffer);
@@ -45,8 +57,7 @@ public static class StlReader
     private const int Stride = 50;
     private static unsafe StlFacet ReadBinaryFacetFast(this Stream stream, byte[] buffer)
     {
-        var readCount = stream.Read(buffer);
-        if (readCount != Stride) throw new Exception("read of binary facet failed");
+        stream.ReadExactly(buffer, 0, Stride);
         const int normalSkip = 12;
         fixed (byte* bufPtr = &buffer[normalSkip]) return ((StlFacet*)bufPtr)[0];
     }

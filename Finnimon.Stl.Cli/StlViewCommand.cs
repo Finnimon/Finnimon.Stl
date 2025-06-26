@@ -16,7 +16,9 @@ public sealed class StlViewCommand : Command<StlViewSettings>
         }
         try
         {
-            RunDisownedProcess(GetExecutable(), stl);
+            string[] args=stl is { Length: > 0 }?[stl]:[];
+            GuiProgram.Main(args);
+            //RunDisownedProcess(GetExecutable(), stl);
             return 0;
         }
         catch (Exception ex)

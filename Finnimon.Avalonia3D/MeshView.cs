@@ -122,8 +122,11 @@ public class MeshView : BaseTkOpenGlControl
     {
         _frameTimer.Restart();
         GL.ClearColor(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A);
-        SolidShader = ShaderProgram.FromFiles("./Shaders/default");
-        WireframeShader = ShaderProgram.FromFiles("./Shaders/solidcolor");
+        var dir = Path.GetDirectoryName(typeof(MeshView).Assembly.Location);
+        var solidShaderFiles = Path.Combine(dir, "Shaders/default");
+        var wireFrameShaderFiles = Path.Combine(dir, "Shaders/solidcolor");
+        SolidShader = ShaderProgram.FromFiles(solidShaderFiles);
+        WireframeShader = ShaderProgram.FromFiles(wireFrameShaderFiles);
         _vao = GL.GenVertexArray();
         LogGlError();
     }
@@ -135,9 +138,11 @@ public class MeshView : BaseTkOpenGlControl
         DoCsysRender();
     }
 
-
+    private bool _tornDown = false;
     protected override void OpenTkTeardown()
     {
+        if (_tornDown) return;
+        _tornDown = true;
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.DeleteBuffer(_vbo);
         GL.BindVertexArray(0);
@@ -149,6 +154,7 @@ public class MeshView : BaseTkOpenGlControl
         WireframeShader?.Delete();
         WireframeShader = null;
     }
+    ~MeshView() => OpenTkTeardown();
 
     #region do render
 
