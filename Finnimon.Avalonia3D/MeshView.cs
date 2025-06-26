@@ -95,6 +95,7 @@ public class MeshView : BaseTkOpenGlControl
 
     private bool _isDragging;
     private Point _lastPos;
+    private bool _initialized = false;
     private ShadedTriangle[] _triangleBuffer;
 
     #endregion
@@ -120,6 +121,8 @@ public class MeshView : BaseTkOpenGlControl
 
     protected override void OpenTkInit()
     {
+        if (_initialized) return;
+        _initialized = true;
         _frameTimer.Restart();
         GL.ClearColor(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A);
         var dir = Path.GetDirectoryName(typeof(MeshView).Assembly.Location);
@@ -138,11 +141,19 @@ public class MeshView : BaseTkOpenGlControl
         DoCsysRender();
     }
 
-    private bool _tornDown = false;
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        OpenTkTeardown();
+    }
+
     protected override void OpenTkTeardown()
     {
-        if (_tornDown) return;
-        _tornDown = true;
+        if (!_initialized) return;
+        _newMesh = true;
+        _newSolidColor = true;
+        _newWireframeColor = true;
+        _initialized = false;
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.DeleteBuffer(_vbo);
         GL.BindVertexArray(0);
